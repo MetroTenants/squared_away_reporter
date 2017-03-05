@@ -37,11 +37,11 @@ def call_issue_query(cls, start_date, end_date, categories, zip_codes):
     ]
     if categories:
         filter_list.append(
-            Categories.name.in_(categories.split('|'))
+            Categories.name.in_(categories.split(','))
         )
     if zip_codes:
         filter_list.append(
-            Addresses.zip.in_(zip_codes.split('|'))
+            Addresses.zip.in_(zip_codes.split(','))
         )
 
     return session.query(

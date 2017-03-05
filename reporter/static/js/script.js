@@ -156,11 +156,11 @@ String.prototype.lpad = function(padString, length) {
     }
     if (categoryValues) {
       var catArr = Array.prototype.slice.call(categoryValues);
-      queryArgs.push("categories=" + catArr.map(function(c){return c.value;}).join("|"));
+      queryArgs.push("categories=" + catArr.map(function(c){return c.value;}).join(","));
     }
     if (zipCodes) {
       var zipArr = Array.prototype.slice.call(zipCodes);
-      queryArgs.push("zip_codes=" + zipArr.map(function(z){return z.value;}).join("|"));
+      queryArgs.push("zip_codes=" + zipArr.map(function(z){return z.value;}).join(","));
     }
     queryUrl += queryArgs.join("&");
 
