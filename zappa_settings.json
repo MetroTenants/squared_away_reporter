@@ -1,0 +1,7 @@
+{
+    "dev": {
+        "app_function": "reporter.__init__.app",
+        "s3_bucket": "squared-away-reports",
+        "keep_warm": false
+    }
+}

@@ -1,0 +1,5 @@
+.DS_Store
+*.pyc
+*.zip
+venv
+reporter/config.py

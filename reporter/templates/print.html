@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Squared Away Reports{% endblock %}
+
+{% block content %}
+<div class='row col-md-12 col-offset-1'>
+  <h1>{{ report_title }}</h1>
+  <button class="btn print-hide" onclick="window.print(); return false">
+    <span class="glyphicon glyphicon-print"></span>
+  </button>
+</div>
+<div class='row main-content'>
+  <div class='col-md-12'>
+    <svg width="100%" height="800px"></svg>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var geoDump = {{ geo_dump|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/print.js') }}"></script>
+{% endblock %}
