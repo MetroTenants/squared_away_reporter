@@ -1,4 +1,4 @@
-var svg, width, height, projection, path, spinner;
+var svg, width, height, projection, path, spinner, tooltip;
 
 function handleGeoJson(geoPath) {
   d3.json(geoPath, function(json) {
@@ -7,6 +7,14 @@ function handleGeoJson(geoPath) {
       var s = 0.95 / Math.max((bounds[1][0] - bounds[0][0]) / width, (bounds[1][1] - bounds[0][1]) / height);
       var t = [(width - s * (bounds[1][0] + bounds[0][0])) / 2, (height - s * (bounds[1][1] + bounds[0][1])) / 2];
       projection.scale(s).translate(t);
+      tooltip = d3.select("body")
+        .append("div")
+        .style("visibility", "hidden")
+        .style("font-size", "16px")
+        .style("padding", "10px")
+        .style("z-index", "10")
+        .style("position", "absolute")
+        .style("background-color", "lightgrey");
     }
     else {
       svg.select("g.chicago")
@@ -45,10 +53,14 @@ function handleGeoJson(geoPath) {
 
     var legendText = "Calls/Issues by ";
     if (json.features[0].properties.zip) {
-      legendText += "Zip Code";
+      var tooltA = "Zip";
+      legendText += tooltA;
+      var areaProp = "zip";
     }
     else if (json.features[0].properties.ward) {
-      legendText += "Ward";
+      var tooltA = "Ward";
+      legendText += tooltA;
+      var areaProp = "ward";
     }
 
     svg.select('g.legend').append("text")
@@ -68,7 +80,7 @@ function handleGeoJson(geoPath) {
     svg.select("g.chicago")
       .selectAll("path")
         .data(json.features, function(d) {
-          return d.properties.ward + "-" + d.properties.call_issue_count;
+          return d.properties[areaProp] + "-" + d.properties.call_issue_count;
         })
         .enter().append("path")
           .attr("d", path)
@@ -76,7 +88,13 @@ function handleGeoJson(geoPath) {
           .attr("stroke", "#6F7070")
           .attr("stroke-opacity", 0.8)
           .attr("stroke-width", 1)
-          .attr("fill", function(d) { return color(d.properties.call_issue_count);});
+          .attr("fill", function(d) { return color(d.properties.call_issue_count);})
+          .on("mouseover", function(d){
+            return tooltip.style("visibility", "visible")
+              .html("<b>" + tooltA + "</b>: " + d.properties[areaProp] + "<br><b>Count</b>: " + d.properties.call_issue_count)
+          })
+	        .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+	        .on("mouseout", function(){return tooltip.style("visibility", "hidden");});;
 
     spinner.style.display = "none";
   });

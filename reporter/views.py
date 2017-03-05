@@ -154,6 +154,26 @@ def print_view():
     )
     chi_areas = handle_filter(request, start_date, end_date)
 
+    # Handle report titles based on year and month
+    if start_date.year == end_date.year:
+        # If basic annual report, just return year
+        if start_date.month == 1 and end_date.month == 12:
+            report_time = start_date.year
+        # If in same year, return Mon-Mon YYYY
+        else:
+            report_time = '{}-{} {}'.format(
+                start_date.strftime('%b'),
+                end_date.strftime('%b'),
+                start_date.year
+            )
+    # If not same year, return Mon YYYY-Mon YYYY
+    else:
+        report_time = '{} {}-{} {}'.format(
+            start_date.strftime('%b'), start_date.year,
+            end_date.strftime('%b'), end_date.year
+        )
+
     return render_template('print.html',
-                           report_title='Squared Away Report',
-                           geo_dump=chi_areas)
+                           geo_dump=chi_areas,
+                           report_time=report_time,
+                           today=date.today())
