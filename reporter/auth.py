@@ -62,9 +62,7 @@ def login():
         login_user(user)
         redirect_next = url_for('views.index')
         if request.args.get('next'):
-            if app.config['STAGE']:
-                redirect_next = '/{}/{}'.format(app.config['STAGE'],
-                                                request.args.get('next'))
+            redirect_next = request.args.get('next')
         return redirect(redirect_next)
     email = form.email.data
     return render_template('login.html', form=form, email=email)
