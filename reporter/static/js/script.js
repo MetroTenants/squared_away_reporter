@@ -62,7 +62,7 @@ function handleGeoJson(geoPath) {
         .attr('x', 35)
         .attr('y', 20)
         .text(function(d) {
-          return color.invertExtent(d).join('-');
+          return color.invertExtent(d).map(function(d) { return Math.floor(d); }).join("-");
         });
 
     svg.select("g.chicago")

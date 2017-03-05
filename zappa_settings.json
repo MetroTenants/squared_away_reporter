@@ -1,7 +1,16 @@
 {
     "dev": {
         "app_function": "reporter.__init__.app",
-        "s3_bucket": "squared-away-reports",
+        "s3_bucket": "squared-away-reports-dev",
         "keep_warm": false
+    },
+    "prod": {
+        "app_function": "reporter.__init__.app",
+        "s3_bucket": "squared-away-reports-prod",
+        "keep_warm": false,
+        "domain": "reports.squaredawaychicago.com",
+        "lets_encrypt_key": "s3://squared-away-reports-config/account.key",
+        "lets_encrypt_expression": "rate(15 days)",
+        "timeout_seconds": 300
     }
 }
