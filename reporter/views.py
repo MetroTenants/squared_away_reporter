@@ -21,7 +21,7 @@ def handle_dates(start_date, end_date):
     if start_date:
         start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
     else:
-        start_date = date.today() - timedelta(days=730)
+        start_date = date.today() - timedelta(days=365)
     if end_date:
         end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
     else:

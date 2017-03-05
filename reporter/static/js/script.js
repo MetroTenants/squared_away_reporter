@@ -82,6 +82,14 @@ function handleGeoJson(geoPath) {
   });
 }
 
+//pads left
+String.prototype.lpad = function(padString, length) {
+	var str = this;
+    while (str.length < length)
+        str = padString + str;
+    return str;
+};
+
 (function() {
   bbox = document.getElementsByTagName("svg")[0].getBoundingClientRect();
   width = bbox.width;
@@ -89,6 +97,16 @@ function handleGeoJson(geoPath) {
   svg = d3.select("svg");
 
   spinner = document.querySelector("div.loader");
+
+  // Setting the start and end date inputs
+  var startDate = document.getElementById("start_date");
+  var endDate = document.getElementById("end_date");
+
+  var dt = new Date();
+  var mn = (dt.getMonth() + 1).toString().lpad("0", 2);
+  var dy = dt.getDate().toString().lpad("0", 2);
+  startDate.value = (dt.getFullYear() - 1) + "-" + mn + "-" + dy;
+  endDate.value = dt.getFullYear() + "-" + mn + "-" + dy;
 
   svg.append("g")
     .attr("class", "chicago");
