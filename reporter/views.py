@@ -176,4 +176,5 @@ def print_view():
     return render_template('print.html',
                            geo_dump=chi_areas,
                            report_time=report_time,
+                           colors=request.args.get('color_choice', 'YlOrBr'),
                            today=date.today())

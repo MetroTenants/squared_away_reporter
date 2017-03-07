@@ -1,4 +1,4 @@
-var svg, width, height, projection, path, spinner, tooltip;
+var svg, width, height, projection, path, spinner, tooltip, cbColors;
 
 function handleGeoJson(geoPath) {
   d3.json(geoPath, function(json) {
@@ -29,7 +29,7 @@ function handleGeoJson(geoPath) {
           }
           return 0;
         })])
-        .range(colorbrewer.Blues[5]);
+        .range(colorbrewer[cbColors][5]);
 
     var legend = d3.select('svg')
         .append("g")
@@ -113,7 +113,6 @@ String.prototype.lpad = function(padString, length) {
   width = bbox.width;
   height = bbox.height;
   svg = d3.select("svg");
-
   spinner = document.querySelector("div.loader");
 
   // Setting the start and end date inputs
@@ -138,6 +137,7 @@ String.prototype.lpad = function(padString, length) {
 
     var queryUrl = "filter-geo?";
     var geog = document.getElementById("geog");
+    cbColors = document.querySelector("#color_choice").value;
     var startDate = document.getElementById("start_date");
     var endDate = document.getElementById("end_date");
     var categoryValues = document.querySelectorAll("#categories option:checked");
@@ -145,9 +145,9 @@ String.prototype.lpad = function(padString, length) {
 
     var queryArgs = [];
 
-    if (geog.value) {
-      queryArgs.push("geog=" + geog.value);
-    }
+    queryArgs.push("geog=" + geog.value);
+    queryArgs.push("color_choice=" + cbColors);
+
     if (startDate.value) {
       queryArgs.push("start_date=" + startDate.value);
     }

@@ -80,7 +80,7 @@ function handleGeoJson(json) {
         }
         return 0;
       })])
-      .range(colorbrewer.Blues[5]);
+      .range(colorbrewer[cbColors][5]);
 
   var legend = d3.select('svg')
       .append("g")

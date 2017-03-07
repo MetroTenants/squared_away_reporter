@@ -22,6 +22,7 @@
 {% block scripts %}
 <script>
 var geoDump = {{ geo_dump|tojson }};
+var cbColors = '{{ colors }}';
 </script>
 <script src="{{ url_for('static', filename='js/print.js') }}"></script>
 {% endblock %}
