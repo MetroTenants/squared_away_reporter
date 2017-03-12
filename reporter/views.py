@@ -14,6 +14,11 @@ import json
 import csv
 import os
 
+from operator import itemgetter
+from shapely.geometry import shape, Point
+from .pyrtree import Rect, RTree
+import time
+
 views = Blueprint('views', __name__)
 
 
@@ -70,18 +75,34 @@ def handle_filter(request, start_date, end_date):
     geoj_path = os.path.join(
         current_dir, 'static', 'js', 'chi_{}.geojson'.format(geog)
     )
+    time1 = time.time()
     with open(geoj_path, 'r') as gf:
         chi_areas = json.load(gf)
 
     [a['properties'].update({'call_issue_count': 0}) for a in chi_areas['features']]
+    chi_shapes = [shape(f['geometry']) for f in chi_areas['features']]
+
+    tree = RTree()
+    for i, s in enumerate(chi_shapes):
+        tree.insert({'idx': i, 'shape': s}, Rect(*s.bounds))
 
     query_list = list(session.query(combined_query))
-    for a in chi_areas['features']:
-        a['properties']['call_issue_count'] = len(
-            filter(lambda i: point_in_poly(
-                i.lon, i.lat, a['geometry']['coordinates'][0]
-                ), query_list)
-        )
+
+    for p in query_list:
+        for r in tree.query_point((p.lon, p.lat)):
+            if r.leaf_obj():
+                shp = r.leaf_obj()
+                pt = Point(p.lon, p.lat)
+                if pt.within(shp['shape']):
+                    chi_areas['features'][shp['idx']]['properties']['call_issue_count'] += 1
+    time2 = time.time()
+    print('Spatial join took %0.3f ms' % ((time2-time1) * 1000.0))
+    # for a in chi_areas['features']:
+    #     a['properties']['call_issue_count'] = len(
+    #         filter(lambda i: point_in_poly(
+    #             i.lon, i.lat, a['geometry']['coordinates'][0]
+    #             ), query_list)
+    #     )
     return chi_areas
 
 
