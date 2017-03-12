@@ -14,9 +14,9 @@ import json
 import csv
 import os
 
-from operator import itemgetter
 from shapely.geometry import shape, Point
 from .pyrtree import Rect, RTree
+import pickle
 import time
 
 views = Blueprint('views', __name__)
@@ -75,34 +75,26 @@ def handle_filter(request, start_date, end_date):
     geoj_path = os.path.join(
         current_dir, 'static', 'js', 'chi_{}.geojson'.format(geog)
     )
-    time1 = time.time()
     with open(geoj_path, 'r') as gf:
         chi_areas = json.load(gf)
 
-    [a['properties'].update({'call_issue_count': 0}) for a in chi_areas['features']]
-    chi_shapes = [shape(f['geometry']) for f in chi_areas['features']]
+    [a['properties'].update({'ci_count': 0}) for a in chi_areas['features']]
 
     tree = RTree()
-    for i, s in enumerate(chi_shapes):
-        tree.insert({'idx': i, 'shape': s}, Rect(*s.bounds))
+    # RTree indices are different than feature list, saving in obj
+    for i, a in enumerate(chi_areas['features']):
+        shp = shape(a['geometry'])
+        tree.insert({'idx': i, 'shape': shp}, Rect(*shp.bounds))
 
-    query_list = list(session.query(combined_query))
-
-    for p in query_list:
+    for p in session.query(combined_query):
         for r in tree.query_point((p.lon, p.lat)):
-            if r.leaf_obj():
-                shp = r.leaf_obj()
-                pt = Point(p.lon, p.lat)
-                if pt.within(shp['shape']):
-                    chi_areas['features'][shp['idx']]['properties']['call_issue_count'] += 1
-    time2 = time.time()
-    print('Spatial join took %0.3f ms' % ((time2-time1) * 1000.0))
-    # for a in chi_areas['features']:
-    #     a['properties']['call_issue_count'] = len(
-    #         filter(lambda i: point_in_poly(
-    #             i.lon, i.lat, a['geometry']['coordinates'][0]
-    #             ), query_list)
-    #     )
+            if not r.leaf_obj():
+                continue
+            shp = r.leaf_obj()
+            pt = Point(p.lon, p.lat)
+            if pt.within(shp['shape']):
+                chi_areas['features'][shp['idx']]['properties']['ci_count'] += 1
+
     return chi_areas
 
 
@@ -143,13 +135,13 @@ def filter_csv():
         yield line.read()
         line.truncate(0)
 
-        writer.writerow([geog_name, 'call_issue_count'])
+        writer.writerow([geog_name, 'ci_count'])
         line.seek(0)
         yield line.read()
         line.truncate(0)
 
         for i in chi_areas['features']:
-            writer.writerow([i['properties'][geog_name], i['properties']['call_issue_count']])
+            writer.writerow([i['properties'][geog_name], i['properties']['ci_count']])
             line.seek(0)
             yield line.read()
             line.truncate(0)

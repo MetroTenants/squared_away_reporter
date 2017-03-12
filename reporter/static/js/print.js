@@ -5,7 +5,7 @@ var hideZips = ["60601", "60602", "60603", "60604", "60606", "60611", "60661"];
 function createReportTables(json, feat) {
   var areaTableObj = {};
   json.features.forEach(function(d) {
-    areaTableObj[d.properties[feat]] = d.properties.call_issue_count;
+    areaTableObj[d.properties[feat]] = d.properties.ci_count;
   });
   var featList = json.features.map(function(d){return d.properties[feat];}).sort();
 
@@ -75,8 +75,8 @@ function handleGeoJson(json) {
 
   var color = d3.scaleQuantize()
       .domain([0, d3.max(json.features, function(d) {
-        if (d.properties.call_issue_count) {
-          return d.properties.call_issue_count;
+        if (d.properties.ci_count) {
+          return d.properties.ci_count;
         }
         return 0;
       })])
@@ -129,7 +129,7 @@ function handleGeoJson(json) {
   svg.select("g.chicago")
     .selectAll("path")
       .data(json.features, function(d) {
-        return d.properties[areaProp] + "-" + d.properties.call_issue_count;
+        return d.properties[areaProp] + "-" + d.properties.ci_count;
       })
       .enter().append("path")
         .attr("d", path)
@@ -137,12 +137,12 @@ function handleGeoJson(json) {
         .attr("stroke", "#6F7070")
         .attr("stroke-opacity", 0.8)
         .attr("stroke-width", 1)
-        .attr("fill", function(d) { return color(d.properties.call_issue_count);});
+        .attr("fill", function(d) { return color(d.properties.ci_count);});
 
   svg.select("g.chicago")
     .selectAll("text.area-label")
       .data(json.features, function(d) {
-        return d.properties[areaProp] + "-" + d.properties.call_issue_count;
+        return d.properties[areaProp] + "-" + d.properties.ci_count;
       })
       .enter().append("text")
         .attr("class", "area-label")

@@ -24,8 +24,8 @@ function handleGeoJson(geoPath) {
 
     var color = d3.scaleQuantize()
         .domain([0, d3.max(json.features, function(d) {
-          if (d.properties.call_issue_count) {
-            return d.properties.call_issue_count;
+          if (d.properties.ci_count) {
+            return d.properties.ci_count;
           }
           return 0;
         })])
@@ -80,7 +80,7 @@ function handleGeoJson(geoPath) {
     svg.select("g.chicago")
       .selectAll("path")
         .data(json.features, function(d) {
-          return d.properties[areaProp] + "-" + d.properties.call_issue_count;
+          return d.properties[areaProp] + "-" + d.properties.ci_count;
         })
         .enter().append("path")
           .attr("d", path)
@@ -88,10 +88,10 @@ function handleGeoJson(geoPath) {
           .attr("stroke", "#6F7070")
           .attr("stroke-opacity", 0.8)
           .attr("stroke-width", 1)
-          .attr("fill", function(d) { return color(d.properties.call_issue_count);})
+          .attr("fill", function(d) { return color(d.properties.ci_count);})
           .on("mouseover", function(d){
             return tooltip.style("visibility", "visible")
-              .html("<b>" + tooltA + "</b>: " + d.properties[areaProp] + "<br><b>Count</b>: " + d.properties.call_issue_count)
+              .html("<b>" + tooltA + "</b>: " + d.properties[areaProp] + "<br><b>Count</b>: " + d.properties.ci_count)
           })
 	        .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
 	        .on("mouseout", function(){return tooltip.style("visibility", "hidden");});;
