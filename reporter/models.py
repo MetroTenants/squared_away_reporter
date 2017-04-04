@@ -1,8 +1,8 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey, \
-    Boolean, Table
-from sqlalchemy.orm import relationship, backref, synonym
+    Boolean, Text, Table
+from sqlalchemy.orm import relationship, backref, synonym, aliased
 from .database import Base, db_session
 from flask_bcrypt import Bcrypt
 
@@ -26,6 +26,7 @@ class User(Base):
     last_name = Column(String)
     email = Column(String, nullable=False, unique=True)
     role = Column(String)
+    management_company = Column(String)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
     phone_number = Column(String)
@@ -58,30 +59,6 @@ class User(Base):
         return self.id
 
 
-class Calls(Base):
-    __tablename__ = 'calls'
-    id = Column(Integer, primary_key=True)
-    created_at = Column('datetime_edit', DateTime)
-    updated_at = Column(DateTime)
-    address_id = Column(Integer, ForeignKey('addresses.id'))
-    categories = relationship('Categories',
-                              secondary=call_category_table,
-                              backref='calls')
-
-
-class Issues(Base):
-    __tablename__ = 'issues'
-    id = Column(Integer, primary_key=True)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
-    address_id = Column(Integer, ForeignKey('addresses.id'))
-    title = Column(String)
-    message = Column(String)
-    categories = relationship('Categories',
-                              secondary=issue_category_table,
-                              backref='issues')
-
-
 class Addresses(Base):
     __tablename__ = 'addresses'
     id = Column(Integer, primary_key=True)
@@ -102,3 +79,62 @@ class Categories(Base):
     name = Column(String)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
+
+
+class Calls(Base):
+    __tablename__ = 'calls'
+    id = Column(Integer, primary_key=True)
+    created_at = Column('datetime_edit', DateTime)
+    updated_at = Column(DateTime)
+    address_id = Column(Integer, ForeignKey('addresses.id'))
+    address = relationship(Addresses, foreign_keys=address_id)
+    categories = relationship('Categories',
+                              secondary=call_category_table,
+                              backref='calls')
+    tenant_id = Column(Integer, ForeignKey('users.id'))
+    tenant = relationship('User',
+        primaryjoin="Calls.tenant_id==User.id",
+        foreign_keys=tenant_id)
+    landlord_id = Column(Integer, ForeignKey('users.id'))
+    landlord = relationship('User',
+        primaryjoin="Calls.landlord_id==User.id",
+        foreign_keys=landlord_id)
+    has_lease = Column(Boolean)
+    received_lead_notice = Column(Boolean)
+    number_of_children_under_six = Column(String)
+    number_of_units_in_building = Column(String)
+    is_owner_occupied = Column(Boolean)
+    is_subsidized = Column(Boolean)
+    subsidy_type = Column(String)
+    is_rlto = Column(Boolean)
+    is_referred_by_info = Column(Boolean)
+    is_counseled_in_spanish = Column(Boolean)
+    is_referred_to_building_organizer = Column(Boolean)
+
+
+class Issues(Base):
+    __tablename__ = 'issues'
+    id = Column(Integer, primary_key=True)
+    created_at = Column(DateTime)
+    updated_at = Column(DateTime)
+    address_id = Column(Integer, ForeignKey('addresses.id'))
+    address = relationship(Addresses, foreign_keys=address_id)
+    tenant_id = Column(Integer, ForeignKey('users.id'))
+    tenant = relationship('User',
+        primaryjoin="Issues.tenant_id==User.id",
+        foreign_keys=tenant_id)
+    landlord_id = Column(Integer, ForeignKey('users.id'))
+    landlord = relationship('User',
+        primaryjoin="Issues.landlord_id==User.id",
+        foreign_keys=landlord_id)
+    title = Column(Text)
+    message = Column(Text)
+    categories = relationship('Categories',
+                              secondary=issue_category_table,
+                              backref='issues')
+    closed = Column(DateTime)
+    resolved = Column(DateTime)
+    area_of_residence = Column(String)
+    efforts_to_fix = Column(Text)
+    urgency = Column(String)
+    entry_availability = Column(Text)

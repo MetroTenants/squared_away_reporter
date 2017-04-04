@@ -19,8 +19,9 @@ text {
   margin-bottom: 10px;
 }
 
-.btn-list btn {
-  margin-right: 10px;
+.btn-list button {
+  margin: 5px;
+  display: block;
 }
 
 .area-label {

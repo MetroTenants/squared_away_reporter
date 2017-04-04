@@ -166,6 +166,8 @@ String.prototype.lpad = function(padString, length) {
 
     var csvLink = document.getElementById("csvLink");
     csvLink.href = "filter-csv?" + queryArgs.join("&");
+    var detailCsvLink = document.getElementById("detailCsvLink");
+    detailCsvLink.href = "detail-csv?" + queryArgs.join("&");
     var printLink = document.getElementById("printLink");
     printLink.href = "print?" + queryArgs.join("&");
 
