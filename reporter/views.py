@@ -25,6 +25,7 @@ views = Blueprint('views', __name__)
 
 DETAIL_CSV_COLS = [
     'id',
+    'call_issue',
     'created_at',
     'updated_at',
     'tenant_first_name',
@@ -36,6 +37,9 @@ DETAIL_CSV_COLS = [
     'city',
     'state',
     'zip',
+    'lat',
+    'lon',
+    'ward',
     'landlord_first_name',
     'landlord_last_name',
     'landlord_management_company',
@@ -217,16 +221,6 @@ def detail_csv():
     tenant = aliased(User)
     landlord = aliased(User)
 
-    call_filter_list = [
-        Calls.created_at >= start_date,
-        Calls.created_at <= end_date
-    ] + filter_list
-
-    issue_filter_list = [
-        Issues.created_at >= start_date,
-        Issues.created_at <= end_date
-    ] + filter_list
-
     call_query = session.query(
         Calls.id.label('id'),
         Calls.created_at.label('created_at'),
@@ -240,6 +234,8 @@ def detail_csv():
         Addresses.city.label('city'),
         Addresses.state.label('state'),
         Addresses.zip.label('zip'),
+        Addresses.lat.label('lat'),
+        Addresses.lon.label('lon'),
         landlord.first_name.label('landlord_first_name'),
         landlord.last_name.label('landlord_last_name'),
         landlord.management_company.label('landlord_management_company'),
@@ -260,7 +256,7 @@ def detail_csv():
     ).join(Calls.categories, Addresses
     ).join(tenant, Calls.tenant
     ).join(landlord, Calls.landlord
-    ).filter(*call_filter_list
+    ).filter(*([Calls.created_at >= start_date, Calls.created_at <= end_date] + filter_list)
     ).order_by(Calls.created_at.asc()
     ).group_by(Calls, tenant, Addresses, landlord)
 
@@ -277,6 +273,8 @@ def detail_csv():
         Addresses.city.label('city'),
         Addresses.state.label('state'),
         Addresses.zip.label('zip'),
+        Addresses.lat.label('lat'),
+        Addresses.lon.label('lon'),
         landlord.first_name.label('landlord_first_name'),
         landlord.last_name.label('landlord_last_name'),
         landlord.management_company.label('landlord_management_company'),
@@ -294,9 +292,40 @@ def detail_csv():
     ).join(Issues.categories, Addresses
     ).join(tenant, Issues.tenant
     ).join(landlord, Issues.landlord
-    ).filter(*issue_filter_list
+    ).filter(*([Issues.created_at >= start_date, Issues.created_at <= end_date] + filter_list)
     ).order_by(Issues.created_at.asc()
     ).group_by(Issues, tenant, Addresses, landlord)
+
+    calls = [dict(zip(c.keys(), c)) for c in call_query]
+    issues = [dict(zip(i.keys(), i)) for i in issue_query]
+    calls_issues = calls + issues
+
+    current_dir = os.path.dirname(__file__)
+    geoj_path = os.path.join(
+        current_dir, 'static', 'js', 'chi_{}.geojson'.format(geog)
+    )
+    with open(geoj_path, 'r') as gf:
+        chi_areas = json.load(gf)
+
+    [a['properties'].update({'ci_count': 0}) for a in chi_areas['features']]
+
+    tree = RTree()
+    for a in chi_areas['features']:
+        shp = shape(a['geometry'])
+        ward = a['properties']['ward']
+        tree.insert({'ward': ward, 'shape': shp}, Rect(*shp.bounds))
+
+    for ci in calls_issues:
+        ci['call_issue'] = 'issue' if ci.get('title') else 'call'
+        for r in tree.query_point((ci['lon'], ci['lat'])):
+            if not r.leaf_obj:
+                continue
+            shp = r.leaf_obj()
+            if shp is None:
+                continue
+            pt = Point(ci['lon'], ci['lat'])
+            if pt.within(shp['shape']):
+                ci['ward'] = shp['ward']
 
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
@@ -309,22 +338,14 @@ def detail_csv():
         line = StringIO.StringIO()
         writer = csv.writer(line)
 
-        writer.writerow(['type'] + DETAIL_CSV_COLS)
+        writer.writerow(DETAIL_CSV_COLS)
         line.seek(0)
         yield line.read()
         line.truncate(0)
 
-        for c in call_query:
+        for ci in calls_issues:
             writer.writerow(
-                ['call'] + [getattr(c, col, '') for col in DETAIL_CSV_COLS]
-            )
-            line.seek(0)
-            yield line.read()
-            line.truncate(0)
-
-        for i in issue_query:
-            writer.writerow(
-                ['issue'] + [unicode(getattr(i, col, '')) for col in DETAIL_CSV_COLS]
+                [unicode(ci.get(col, '')).encode('ascii', errors='ignore') for col in DETAIL_CSV_COLS]
             )
             line.seek(0)
             yield line.read()
