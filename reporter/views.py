@@ -203,7 +203,7 @@ def filter_csv():
 def detail_csv():
     categories = request.args.get('categories')
     zip_codes = request.args.get('zip_codes')
-    geog = request.args.get('geog', 'wards')
+    # geog = request.args.get('geog', 'wards')
     start_date, end_date = handle_dates(
         request.args.get('start_date'), request.args.get('end_date')
     )
@@ -301,9 +301,7 @@ def detail_csv():
     calls_issues = calls + issues
 
     current_dir = os.path.dirname(__file__)
-    geoj_path = os.path.join(
-        current_dir, 'static', 'js', 'chi_{}.geojson'.format(geog)
-    )
+    geoj_path = os.path.join(current_dir, 'static', 'js', 'chi_wards.geojson')
     with open(geoj_path, 'r') as gf:
         chi_areas = json.load(gf)
 
@@ -330,9 +328,7 @@ def detail_csv():
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
 
-    filename = 'sa_export_detail_{}_{}_{}.csv'.format(
-        start_date_str, end_date_str, geog
-    )
+    filename = 'sa_export_detail_{}_{}.csv'.format(start_date_str, end_date_str)
 
     def gen_csv_export():
         line = StringIO.StringIO()

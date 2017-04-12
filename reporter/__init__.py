@@ -5,13 +5,12 @@ from flask_login import LoginManager
 from .views import views
 from .auth import auth, login_manager
 from .database import db_session
-from .config import SECRET_KEY
 import os
 
 
 def create_app():
     app = Flask(__name__)
-    app.secret_key = SECRET_KEY
+    app.secret_key = os.getenv('SECRET_KEY')
     app.config['STAGE'] = os.getenv('STAGE')
     app.register_blueprint(auth)
     app.register_blueprint(views)
