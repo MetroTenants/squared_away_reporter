@@ -99,6 +99,10 @@ class Calls(Base):
     landlord = relationship('User',
         primaryjoin="Calls.landlord_id==User.id",
         foreign_keys=landlord_id)
+    rep_id = Column(Integer, ForeignKey('users.id'))
+    rep = relationship('User',
+        primaryjoin="Calls.rep_id==User.id",
+        foreign_keys=rep_id)
     has_lease = Column(Boolean)
     received_lead_notice = Column(Boolean)
     number_of_children_under_six = Column(String)

@@ -44,6 +44,8 @@ DETAIL_CSV_COLS = [
     'landlord_last_name',
     'landlord_management_company',
     'landlord_email',
+    'rep_first_name',
+    'rep_last_name',
     'has_lease',
     'received_lead_notice',
     'number_of_children_under_six',
@@ -100,7 +102,7 @@ def call_issue_geog_query(cls, start_date, end_date, categories, zip_codes):
         cls.created_at.label('created_at'),
         Addresses.lat.label('lat'),
         Addresses.lon.label('lon')
-    ).join(cls.categories, Addresses
+    ).outerjoin(cls.categories, Addresses
     ).filter(*filter_list
     ).order_by(cls.created_at.desc()
     ).distinct(cls.id, cls.created_at)
@@ -220,6 +222,7 @@ def detail_csv():
 
     tenant = aliased(User)
     landlord = aliased(User)
+    rep = aliased(User)
 
     call_query = session.query(
         Calls.id.label('id'),
@@ -240,6 +243,8 @@ def detail_csv():
         landlord.last_name.label('landlord_last_name'),
         landlord.management_company.label('landlord_management_company'),
         landlord.email.label('landlord_email'),
+        rep.first_name.label('rep_first_name'),
+        rep.first_name.label('rep_first_name'),
         Calls.has_lease.label('has_lease'),
         Calls.received_lead_notice.label('received_lead_notice'),
         Calls.number_of_children_under_six.label('number_of_children_under_six'),
@@ -253,12 +258,13 @@ def detail_csv():
         Calls.is_referred_to_building_organizer.label('referred_to_building_organizer'),
         sqlalchemy.func.array_to_string(
             array_agg(Categories.name), ',').label('categories')
-    ).join(Calls.categories, Addresses
-    ).join(tenant, Calls.tenant
-    ).join(landlord, Calls.landlord
+    ).outerjoin(Calls.categories, Addresses
+    ).outerjoin(tenant, Calls.tenant
+    ).outerjoin(landlord, Calls.landlord
+    ).outerjoin(rep, Calls.rep
     ).filter(*([Calls.created_at >= start_date, Calls.created_at <= end_date] + filter_list)
     ).order_by(Calls.created_at.asc()
-    ).group_by(Calls, tenant, Addresses, landlord)
+    ).group_by(Calls, tenant, Addresses, landlord, rep)
 
     issue_query = session.query(
         Issues.id.label('id'),
@@ -289,9 +295,9 @@ def detail_csv():
         Issues.entry_availability.label('entry_availability'),
         sqlalchemy.func.array_to_string(
             array_agg(Categories.name), ',').label('categories')
-    ).join(Issues.categories, Addresses
-    ).join(tenant, Issues.tenant
-    ).join(landlord, Issues.landlord
+    ).outerjoin(Issues.categories, Addresses
+    ).outerjoin(tenant, Issues.tenant
+    ).outerjoin(landlord, Issues.landlord
     ).filter(*([Issues.created_at >= start_date, Issues.created_at <= end_date] + filter_list)
     ).order_by(Issues.created_at.asc()
     ).group_by(Issues, tenant, Addresses, landlord)
