@@ -56,6 +56,7 @@ DETAIL_CSV_COLS = [
     'is_rlto',
     'is_referred_by_info',
     'is_counseled_in_spanish',
+    'is_referred_to_attorney',
     'referred_to_building_organizer',
     'categories',
     'title',
@@ -255,6 +256,7 @@ def detail_csv():
         Calls.is_rlto.label('is_rlto'),
         Calls.is_referred_by_info.label('is_referred_by_info'),
         Calls.is_counseled_in_spanish.label('is_counseled_in_spanish'),
+        Calls.is_referred_to_attorney.label('is_referred_to_attorney'),
         Calls.is_referred_to_building_organizer.label('referred_to_building_organizer'),
         sqlalchemy.func.array_to_string(
             array_agg(Categories.name), ',').label('categories')

@@ -113,6 +113,7 @@ class Calls(Base):
     is_rlto = Column(Boolean)
     is_referred_by_info = Column(Boolean)
     is_counseled_in_spanish = Column(Boolean)
+    is_referred_to_attorney = Column(Boolean)
     is_referred_to_building_organizer = Column(Boolean)
 
 
