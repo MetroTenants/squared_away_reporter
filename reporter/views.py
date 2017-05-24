@@ -66,7 +66,17 @@ DETAIL_CSV_COLS = [
     'efforts_to_fix',
     'message',
     'urgency',
-    'entry_availability'
+    'entry_availability',
+    'referred_to_whom',
+    'notes',
+    'heard_about_mto_from',
+    'materials_sent',
+    'is_interested_in_membership',
+    'is_interested_in_tenant_congress',
+    'number_of_materials_sent',
+    'is_tenant_interested_in_volunteering',
+    'is_walkin'
+
 ]
 
 
@@ -258,6 +268,15 @@ def detail_csv():
         Calls.is_counseled_in_spanish.label('is_counseled_in_spanish'),
         Calls.is_referred_to_attorney.label('is_referred_to_attorney'),
         Calls.is_referred_to_building_organizer.label('referred_to_building_organizer'),
+        Calls.referred_to_whom.label('referred_to_whom'),
+        Calls.notes.label('notes'),
+        Calls.heard_about_mto_from.label('heard_about_mto_from'),
+        Calls.materials_sent.label('materials_sent'),
+        Calls.is_interested_in_membership.label('is_interested_in_membership'),
+        Calls.is_interested_in_tenant_congress.label('is_interested_in_tenant_congress'),
+        Calls.number_of_materials_sent.label('number_of_materials_sent'),
+        Calls.is_tenant_interested_in_volunteering.label('is_tenant_interested_in_volunteering'),
+        Calls.is_walkin.label('is_walkin'),
         sqlalchemy.func.array_to_string(
             array_agg(Categories.name), ',').label('categories')
     ).outerjoin(Calls.categories, Addresses

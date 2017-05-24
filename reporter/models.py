@@ -115,6 +115,15 @@ class Calls(Base):
     is_counseled_in_spanish = Column(Boolean)
     is_referred_to_attorney = Column(Boolean)
     is_referred_to_building_organizer = Column(Boolean)
+    referred_to_whom = Column(String)
+    notes = Column(Text)
+    heard_about_mto_from = Column(String)
+    materials_sent = Column(String)
+    is_interested_in_membership = Column(Boolean)
+    is_interested_in_tenant_congress = Column(Boolean)
+    number_of_materials_sent = Column(Integer)
+    is_tenant_interested_in_volunteering = Column(Boolean)
+    is_walkin = Column(Boolean)
 
 
 class Issues(Base):

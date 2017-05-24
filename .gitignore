@@ -2,4 +2,5 @@
 *.pyc
 *.zip
 venv
+.idea
 reporter/config.py
