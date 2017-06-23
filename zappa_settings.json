@@ -9,6 +9,7 @@
         "s3_bucket": "squared-away-reports-prod",
         "keep_warm": false,
         "domain": "reports.squaredawaychicago.com",
+        "remote_env": "s3://squared-away-reports-config/env.json",
         "lets_encrypt_key": "s3://squared-away-reports-config/account.key",
         "lets_encrypt_expression": "rate(15 days)",
         "timeout_seconds": 300

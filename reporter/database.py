@@ -6,12 +6,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 
-engine = create_engine('postgres://{un}:{pw}@{host}:{port}/{db}'.format(
-        un=os.getenv('DB_USER'),
-        pw=os.getenv('DB_PASS'),
-        host=os.getenv('DB_HOST'),
-        port=os.getenv('DB_PORT'),
-        db=os.getenv('DB_NAME')
+engine = create_engine('postgres://{}:{}@{}:{}/{}'.format(
+        os.getenv('DB_USER'),
+        os.getenv('DB_PASS'),
+        os.getenv('DB_HOST'),
+        os.getenv('DB_PORT'),
+        os.getenv('DB_NAME')
     ), convert_unicode=True, server_side_cursors=True)
 
 db_session = scoped_session(

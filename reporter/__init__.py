@@ -11,7 +11,6 @@ import os
 def create_app():
     app = Flask(__name__)
     app.secret_key = os.getenv('SECRET_KEY')
-    app.config['STAGE'] = os.getenv('STAGE')
     app.register_blueprint(auth)
     app.register_blueprint(views)
     login_manager.init_app(app)
