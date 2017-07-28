@@ -140,6 +140,7 @@ String.prototype.lpad = function(padString, length) {
     var endDate = document.getElementById("end_date");
     var categoryValues = document.querySelectorAll("#categories option:checked");
     var zipCodes = document.querySelectorAll("#zip_codes option:checked");
+    var reportTitle = document.getElementById("report_title").value;
 
     var queryArgs = [];
 
@@ -159,6 +160,9 @@ String.prototype.lpad = function(padString, length) {
     if (zipCodes) {
       var zipArr = Array.prototype.slice.call(zipCodes);
       queryArgs.push("zip_codes=" + zipArr.map(function(z){return z.value;}).join(","));
+    }
+    if (reportTitle) {
+      queryArgs.push("report_title=" + reportTitle);
     }
     queryUrl += queryArgs.join("&");
 

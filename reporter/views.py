@@ -414,8 +414,11 @@ def print_view():
             end_date.strftime('%b'), end_date.year
         )
 
-    return render_template('print.html',
-                           geo_dump=chi_areas,
-                           report_time=report_time,
-                           colors=request.args.get('color_choice', 'YlOrBr'),
-                           today=date.today())
+    return render_template(
+        'print.html',
+        geo_dump=chi_areas,
+        report_title=request.args.get('report_title', 'Calls and Issues'),
+        report_time=report_time,
+        colors=request.args.get('color_choice', 'YlOrBr'),
+        today=date.today()
+    )
