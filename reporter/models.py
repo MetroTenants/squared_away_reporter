@@ -123,6 +123,7 @@ class Calls(Base):
     is_interested_in_tenant_congress = Column(Boolean)
     number_of_materials_sent = Column(Integer)
     is_tenant_interested_in_volunteering = Column(Boolean)
+    is_referred_to_agency = Column(Boolean)
     is_walkin = Column(Boolean)
 
 

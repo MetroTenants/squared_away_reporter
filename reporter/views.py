@@ -75,8 +75,8 @@ DETAIL_CSV_COLS = [
     'is_interested_in_tenant_congress',
     'number_of_materials_sent',
     'is_tenant_interested_in_volunteering',
+    'is_referred_to_agency',
     'is_walkin'
-
 ]
 
 
@@ -276,16 +276,18 @@ def detail_csv():
         Calls.is_interested_in_tenant_congress.label('is_interested_in_tenant_congress'),
         Calls.number_of_materials_sent.label('number_of_materials_sent'),
         Calls.is_tenant_interested_in_volunteering.label('is_tenant_interested_in_volunteering'),
+        Calls.is_referred_to_agency.label('is_referred_to_agency'),
         Calls.is_walkin.label('is_walkin'),
         sqlalchemy.func.array_to_string(
-            array_agg(Categories.name), ',').label('categories')
-    ).outerjoin(Calls.categories, Addresses
-    ).outerjoin(tenant, Calls.tenant
-    ).outerjoin(landlord, Calls.landlord
-    ).outerjoin(rep, Calls.rep
-    ).filter(*([Calls.created_at >= start_date, Calls.created_at <= end_date] + filter_list)
-    ).order_by(Calls.created_at.asc()
-    ).group_by(Calls, tenant, Addresses, landlord, rep)
+            array_agg(Categories.name), ','
+        ).label('categories')
+        ).outerjoin(Calls.categories, Addresses
+        ).outerjoin(tenant, Calls.tenant
+        ).outerjoin(landlord, Calls.landlord
+        ).outerjoin(rep, Calls.rep
+        ).filter(*([Calls.created_at >= start_date, Calls.created_at <= end_date] + filter_list)
+        ).order_by(Calls.created_at.asc()
+        ).group_by(Calls, tenant, Addresses, landlord, rep)
 
     issue_query = session.query(
         Issues.id.label('id'),
@@ -315,13 +317,14 @@ def detail_csv():
         Issues.urgency.label('urgency'),
         Issues.entry_availability.label('entry_availability'),
         sqlalchemy.func.array_to_string(
-            array_agg(Categories.name), ',').label('categories')
-    ).outerjoin(Issues.categories, Addresses
-    ).outerjoin(tenant, Issues.tenant
-    ).outerjoin(landlord, Issues.landlord
-    ).filter(*([Issues.created_at >= start_date, Issues.created_at <= end_date] + filter_list)
-    ).order_by(Issues.created_at.asc()
-    ).group_by(Issues, tenant, Addresses, landlord)
+            array_agg(Categories.name), ','
+        ).label('categories')
+        ).outerjoin(Issues.categories, Addresses
+        ).outerjoin(tenant, Issues.tenant
+        ).outerjoin(landlord, Issues.landlord
+        ).filter(*([Issues.created_at >= start_date, Issues.created_at <= end_date] + filter_list)
+        ).order_by(Issues.created_at.asc()
+        ).group_by(Issues, tenant, Addresses, landlord)
 
     calls = [dict(zip(c.keys(), c)) for c in call_query]
     issues = [dict(zip(i.keys(), i)) for i in issue_query]
@@ -413,12 +416,15 @@ def print_view():
             start_date.strftime('%b'), start_date.year,
             end_date.strftime('%b'), end_date.year
         )
+    if request.args.get('report_title'):
+        report_title = request.args.get('report_title')
+    else:
+        report_title = 'Calls and Issues: {}'.format(report_time)
 
     return render_template(
         'print.html',
         geo_dump=chi_areas,
-        report_title=request.args.get('report_title', 'Calls and Issues'),
-        report_time=report_time,
+        report_title=report_title,
         colors=request.args.get('color_choice', 'YlOrBr'),
         today=date.today()
     )

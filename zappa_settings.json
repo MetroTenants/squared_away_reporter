@@ -9,9 +9,7 @@
         "s3_bucket": "squared-away-reports-prod",
         "keep_warm": false,
         "domain": "reports.squaredawaychicago.com",
-        "remote_env": "s3://squared-away-reports-config/env.json",
-        "lets_encrypt_key": "s3://squared-away-reports-config/account.key",
-        "lets_encrypt_expression": "rate(15 days)",
-        "timeout_seconds": 300
+        "certificate_arn": "arn:aws:acm:us-east-1:489293759233:certificate/9788726d-2f40-46d2-94a3-b0f88e3ab06a",
+        "remote_env": "s3://squared-away-reports-config/env.json"
     }
 }
