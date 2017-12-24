@@ -92,7 +92,9 @@ function handleGeoJson(json) {
           return tooltip.style("visibility", "visible")
             .html("<b>" + tooltA + "</b>: " + d.properties[areaProp] + "<br><b>Count</b>: " + d.properties.ci_count)
         })
-        .on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+        .on("mousemove", function() {
+          tooltip.style("top", (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10)+"px");
+        })
         .on("mouseout", function(){return tooltip.style("visibility", "hidden");});;
 
   spinner.style.display = "none";
