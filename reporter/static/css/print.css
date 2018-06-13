@@ -1,3 +1,49 @@
-.print-hide {
-  display: none;
+body {
+  position: relative;
+  margin: 0;
+  display: block;
+  width: 800px;
+  height: 1000px;
+  margin: 0;
+}
+
+#print-notice {
+  position: absolute;
+  right: 25px;
+  bottom: 0;
+}
+
+.btn.print-hide {
+  position: absolute;
+  top: 100px;
+  left: 25px;
+}
+
+#area-table-1 {
+  position: absolute;
+  top: 350px;
+  left: 50px;
+}
+
+#area-table-2 {
+  position: absolute;
+  top: 350px;
+  left: 150px;
+}
+
+th, td {
+  text-align: center;
+  padding: 3px;
+  font-size: 12px;
+}
+
+h1.print-report, h2.print-report {
+  text-align: center;
+  font-weight: 600;
+}
+
+@media print {
+  .print-hide {
+    display: none;
+  }
 }

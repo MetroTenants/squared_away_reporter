@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+flask-bcrypt = "*"
+flask-login = "*"
+flask-wtf = "*"
+"psycopg2-binary" = "*"
+requests = "*"
+shapely = "*"
+sqlalchemy = "*"
+zappa = "*"
+python-dotenv = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "2.7"

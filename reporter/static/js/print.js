@@ -17,7 +17,7 @@ function createReportTables(json, feat) {
     var areaCol = "Zip";
     var brkInt = 60630;
   }
-  var mainDiv = document.querySelector(".main-content div.col-md-12");
+  var mainDiv = document.querySelector("body");
 
   var areaTable1 = document.createElement("table");
   areaTable1.id = "area-table-1";
@@ -92,7 +92,7 @@ function handleGeoJson(json) {
         .attr('class', 'legend-item')
         .attr('transform', function(d, i) {
           var h = 25;
-          var x = width*0.75
+          var x = width*0.8
           var y = (i * h) + (height * 0.2);
           return 'translate(' + x + ',' + y + ')';
       });
@@ -117,7 +117,7 @@ function handleGeoJson(json) {
     .attr('y', -15)
     .attr('font-weight', 'bold')
     .text(legendText)
-    .attr('transform', 'translate(' + (width*0.75) + ',' + (height*0.2) + ')');
+    .attr('transform', 'translate(' + (width*0.8) + ',' + (height*0.2) + ')');
 
   legend.append('text')
       .attr('x', 35)

@@ -1,7 +1,10 @@
 .DS_Store
 *.pyc
 *.zip
+.env
 venv
+.venv
 .idea
+.vscode
 reporter/config.py
 env.json
