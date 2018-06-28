@@ -131,7 +131,7 @@ String.prototype.lpad = function(padString, length) {
   projection = d3.geoMercator().scale(1).translate([0,0]);
   path = d3.geoPath().projection(projection);
 
-  var button = document.querySelector("button");
+  var button = document.getElementById("updatevals");
   button.addEventListener("click", function() {
     spinner.style.display = "inherit";
 

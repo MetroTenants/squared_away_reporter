@@ -1,7 +1,5 @@
-from __future__ import absolute_import, print_function, unicode_literals
-
-from flask import redirect, url_for, request, Blueprint, render_template, \
-    current_app as app
+from flask import (redirect, url_for, request, Blueprint, render_template,
+    current_app as app)
 from flask_login import login_user, logout_user, LoginManager
 from flask_wtf import Form
 from wtforms import TextField, PasswordField
@@ -14,6 +12,7 @@ from .models import User
 auth = Blueprint('auth', __name__)
 
 login_manager = LoginManager()
+
 
 class LoginForm(Form):
     email = TextField('email', validators=[DataRequired(), Email()])

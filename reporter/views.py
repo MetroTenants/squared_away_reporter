@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function, unicode_literals
-
 from datetime import date, datetime, timedelta
 from flask import Blueprint, render_template, request, jsonify, \
     stream_with_context, Response
@@ -11,7 +9,8 @@ from sqlalchemy.dialects.postgresql import array_agg
 from .database import db_session as session
 from .models import User, Issues, Calls, Addresses, Categories
 from .utils import point_in_poly
-import StringIO
+# import StringIO
+from io import StringIO
 import json
 import csv
 import os
@@ -108,7 +107,7 @@ def call_issue_geog_query(cls, start_date, end_date, categories, zip_codes):
         )
 
     return session.query(
-        Categories.name.label('category'),
+        array_agg(Categories.name).label('categories'),
         cls.id.label('id'),
         cls.created_at.label('created_at'),
         Addresses.lat.label('lat'),
@@ -116,6 +115,7 @@ def call_issue_geog_query(cls, start_date, end_date, categories, zip_codes):
     ).outerjoin(cls.categories, Addresses
     ).filter(*filter_list
     ).order_by(cls.created_at.desc()
+    ).group_by(cls.id, cls.created_at, Addresses
     ).distinct(cls.id, cls.created_at)
 
 
@@ -185,7 +185,7 @@ def filter_csv():
         # Yield parameters and then column headers
         geog_name = geog[:-1]
 
-        line = StringIO.StringIO()
+        line = StringIO()
         writer = csv.writer(line)
 
         writer.writerow([start_date_str, end_date_str, categories, geog])
@@ -236,51 +236,52 @@ def detail_csv():
     rep = aliased(User)
 
     call_query = session.query(
-        Calls.id.label('id'),
-        Calls.created_at.label('created_at'),
-        Calls.updated_at.label('updated_at'),
-        tenant.first_name.label('tenant_first_name'),
-        tenant.last_name.label('tenant_last_name'),
-        tenant.phone_number.label('tenant_phone_number'),
-        tenant.email.label('tenant_email'),
-        Addresses.street.label('street'),
-        Addresses.unit_number.label('unit_number'),
-        Addresses.city.label('city'),
-        Addresses.state.label('state'),
-        Addresses.zip.label('zip'),
-        Addresses.lat.label('lat'),
-        Addresses.lon.label('lon'),
-        landlord.first_name.label('landlord_first_name'),
-        landlord.last_name.label('landlord_last_name'),
-        landlord.management_company.label('landlord_management_company'),
-        landlord.email.label('landlord_email'),
-        rep.first_name.label('rep_first_name'),
-        rep.first_name.label('rep_first_name'),
-        Calls.has_lease.label('has_lease'),
-        Calls.received_lead_notice.label('received_lead_notice'),
-        Calls.number_of_children_under_six.label('number_of_children_under_six'),
-        Calls.number_of_units_in_building.label('number_of_units_in_building'),
-        Calls.is_owner_occupied.label('is_owner_occupied'),
-        Calls.is_subsidized.label('is_subsidized'),
-        Calls.subsidy_type.label('subsidy_type'),
-        Calls.is_rlto.label('is_rlto'),
-        Calls.is_referred_by_info.label('is_referred_by_info'),
-        Calls.is_counseled_in_spanish.label('is_counseled_in_spanish'),
-        Calls.is_referred_to_attorney.label('is_referred_to_attorney'),
-        Calls.is_referred_to_building_organizer.label('referred_to_building_organizer'),
-        Calls.referred_to_whom.label('referred_to_whom'),
-        Calls.notes.label('notes'),
-        Calls.heard_about_mto_from.label('heard_about_mto_from'),
-        Calls.materials_sent.label('materials_sent'),
-        Calls.is_interested_in_membership.label('is_interested_in_membership'),
-        Calls.is_interested_in_tenant_congress.label('is_interested_in_tenant_congress'),
-        Calls.number_of_materials_sent.label('number_of_materials_sent'),
-        Calls.is_tenant_interested_in_volunteering.label('is_tenant_interested_in_volunteering'),
-        Calls.is_referred_to_agency.label('is_referred_to_agency'),
-        Calls.is_walkin.label('is_walkin'),
-        sqlalchemy.func.array_to_string(
-            array_agg(Categories.name), ','
-        ).label('categories')
+        Calls, Addresses, tenant, landlord, rep
+        # Calls.id.label('id'),
+        # Calls.created_at.label('created_at'),
+        # Calls.updated_at.label('updated_at'),
+        # tenant.first_name.label('tenant_first_name'),
+        # tenant.last_name.label('tenant_last_name'),
+        # tenant.phone_number.label('tenant_phone_number'),
+        # tenant.email.label('tenant_email'),
+        # Addresses.street.label('street'),
+        # Addresses.unit_number.label('unit_number'),
+        # Addresses.city.label('city'),
+        # Addresses.state.label('state'),
+        # Addresses.zip.label('zip'),
+        # Addresses.lat.label('lat'),
+        # Addresses.lon.label('lon'),
+        # landlord.first_name.label('landlord_first_name'),
+        # landlord.last_name.label('landlord_last_name'),
+        # landlord.management_company.label('landlord_management_company'),
+        # landlord.email.label('landlord_email'),
+        # rep.first_name.label('rep_first_name'),
+        # rep.first_name.label('rep_first_name'),
+        # Calls.has_lease.label('has_lease'),
+        # Calls.received_lead_notice.label('received_lead_notice'),
+        # Calls.number_of_children_under_six.label('number_of_children_under_six'),
+        # Calls.number_of_units_in_building.label('number_of_units_in_building'),
+        # Calls.is_owner_occupied.label('is_owner_occupied'),
+        # Calls.is_subsidized.label('is_subsidized'),
+        # Calls.subsidy_type.label('subsidy_type'),
+        # Calls.is_rlto.label('is_rlto'),
+        # Calls.is_referred_by_info.label('is_referred_by_info'),
+        # Calls.is_counseled_in_spanish.label('is_counseled_in_spanish'),
+        # Calls.is_referred_to_attorney.label('is_referred_to_attorney'),
+        # Calls.is_referred_to_building_organizer.label('referred_to_building_organizer'),
+        # Calls.referred_to_whom.label('referred_to_whom'),
+        # Calls.notes.label('notes'),
+        # Calls.heard_about_mto_from.label('heard_about_mto_from'),
+        # Calls.materials_sent.label('materials_sent'),
+        # Calls.is_interested_in_membership.label('is_interested_in_membership'),
+        # Calls.is_interested_in_tenant_congress.label('is_interested_in_tenant_congress'),
+        # Calls.number_of_materials_sent.label('number_of_materials_sent'),
+        # Calls.is_tenant_interested_in_volunteering.label('is_tenant_interested_in_volunteering'),
+        # Calls.is_referred_to_agency.label('is_referred_to_agency'),
+        # Calls.is_walkin.label('is_walkin'),
+        # sqlalchemy.func.array_to_string(
+        #     array_agg(Categories.name), ','
+        # ).label('categories')
         ).outerjoin(Calls.categories, Addresses
         ).outerjoin(tenant, Calls.tenant
         ).outerjoin(landlord, Calls.landlord
@@ -290,35 +291,36 @@ def detail_csv():
         ).group_by(Calls, tenant, Addresses, landlord, rep)
 
     issue_query = session.query(
-        Issues.id.label('id'),
-        Issues.created_at.label('created_at'),
-        Issues.updated_at.label('updated_at'),
-        tenant.first_name.label('tenant_first_name'),
-        tenant.last_name.label('tenant_last_name'),
-        tenant.phone_number.label('tenant_phone_number'),
-        tenant.email.label('tenant_email'),
-        Addresses.street.label('street'),
-        Addresses.unit_number.label('unit_number'),
-        Addresses.city.label('city'),
-        Addresses.state.label('state'),
-        Addresses.zip.label('zip'),
-        Addresses.lat.label('lat'),
-        Addresses.lon.label('lon'),
-        landlord.first_name.label('landlord_first_name'),
-        landlord.last_name.label('landlord_last_name'),
-        landlord.management_company.label('landlord_management_company'),
-        landlord.email.label('landlord_email'),
-        Issues.closed.label('closed'),
-        Issues.resolved.label('resolved'),
-        Issues.title.label('title'),
-        Issues.message.label('message'),
-        Issues.area_of_residence.label('area_of_residence'),
-        Issues.efforts_to_fix.label('efforts_to_fix'),
-        Issues.urgency.label('urgency'),
-        Issues.entry_availability.label('entry_availability'),
-        sqlalchemy.func.array_to_string(
-            array_agg(Categories.name), ','
-        ).label('categories')
+        Issues, tenant, Addresses, landlord
+        # Issues.id.label('id'),
+        # Issues.created_at.label('created_at'),
+        # Issues.updated_at.label('updated_at'),
+        # tenant.first_name.label('tenant_first_name'),
+        # tenant.last_name.label('tenant_last_name'),
+        # tenant.phone_number.label('tenant_phone_number'),
+        # tenant.email.label('tenant_email'),
+        # Addresses.street.label('street'),
+        # Addresses.unit_number.label('unit_number'),
+        # Addresses.city.label('city'),
+        # Addresses.state.label('state'),
+        # Addresses.zip.label('zip'),
+        # Addresses.lat.label('lat'),
+        # Addresses.lon.label('lon'),
+        # landlord.first_name.label('landlord_first_name'),
+        # landlord.last_name.label('landlord_last_name'),
+        # landlord.management_company.label('landlord_management_company'),
+        # landlord.email.label('landlord_email'),
+        # Issues.closed.label('closed'),
+        # Issues.resolved.label('resolved'),
+        # Issues.title.label('title'),
+        # Issues.message.label('message'),
+        # Issues.area_of_residence.label('area_of_residence'),
+        # Issues.efforts_to_fix.label('efforts_to_fix'),
+        # Issues.urgency.label('urgency'),
+        # Issues.entry_availability.label('entry_availability'),
+        # sqlalchemy.func.array_to_string(
+        #     array_agg(Categories.name), ','
+        # ).label('categories')
         ).outerjoin(Issues.categories, Addresses
         ).outerjoin(tenant, Issues.tenant
         ).outerjoin(landlord, Issues.landlord
@@ -345,6 +347,7 @@ def detail_csv():
 
     for ci in calls_issues:
         ci['call_issue'] = 'issue' if ci.get('title') else 'call'
+        print(ci['Calls'].tenant)
         for r in tree.query_point((ci['lon'], ci['lat'])):
             if not r.leaf_obj:
                 continue
@@ -388,6 +391,12 @@ def detail_csv():
 @login_required
 def index():
     return render_template('index.html')
+
+
+@views.route('/breakdown')
+@login_required
+def breakdown():
+    return render_template('breakdown.html')
 
 
 @views.route('/print')

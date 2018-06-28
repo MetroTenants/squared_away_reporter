@@ -7,7 +7,7 @@ import math, random, sys
 import time
 import array
 
-from rect import Rect, union_all, NullRect
+from .rect import Rect, union_all, NullRect
 
 class RTree(object):
     def __init__(self):

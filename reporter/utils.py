@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function, unicode_literals
-
 # http://geospatialpython.com/2011/01/point-in-polygon.html
 def point_in_poly(x,y,poly):
 
