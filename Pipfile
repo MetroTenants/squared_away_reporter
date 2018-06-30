@@ -17,6 +17,9 @@ python-dotenv = "*"
 futures = "*"
 
 [dev-packages]
+"flake8" = "*"
+yapf = "*"
+isort = "*"
 
 [requires]
 python_version = "3.6"

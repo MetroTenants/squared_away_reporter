@@ -1,10 +1,11 @@
-from flask import (redirect, url_for, request, Blueprint, render_template,
-    current_app as app)
-from flask_login import login_user, logout_user, LoginManager
+from flask import Blueprint
+from flask import current_app as app  # noqa
+from flask import redirect, render_template, request, url_for
+from flask_login import LoginManager, login_user, logout_user
 from flask_wtf import Form
-from wtforms import TextField, PasswordField
-from wtforms.validators import DataRequired, Email
 from sqlalchemy import func
+from wtforms import PasswordField, TextField
+from wtforms.validators import DataRequired, Email
 
 from .database import db_session
 from .models import User

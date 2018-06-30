@@ -5,6 +5,5 @@
 venv
 .venv
 .idea
-.vscode
 reporter/config.py
 env.json

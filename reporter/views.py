@@ -1,82 +1,23 @@
-from datetime import date, datetime, timedelta
-from flask import Blueprint, render_template, request, jsonify, \
-    stream_with_context, Response
-from flask_login import login_required
-import sqlalchemy
-from sqlalchemy import select, union_all
-from sqlalchemy.orm import joinedload, aliased
-from sqlalchemy.dialects.postgresql import array_agg
-from .database import db_session as session
-from .models import User, Issues, Calls, Addresses, Categories
-from .utils import point_in_poly
-# import StringIO
-from io import StringIO
-import json
 import csv
+import json
 import os
+from datetime import date, datetime, timedelta
+from io import StringIO
 
-from shapely.geometry import shape, Point
+from flask import (Blueprint, Response, jsonify, render_template, request,
+                   stream_with_context)
+from flask_login import login_required
+from shapely.geometry import Point, shape
+from sqlalchemy import union_all
+from sqlalchemy.dialects.postgresql import array_agg
+from sqlalchemy.orm import aliased
+
+from .database import db_session as session
+from .export import CSV_COLS, RecordRow
+from .models import Addresses, Calls, Categories, Issues, User
 from .pyrtree import Rect, RTree
-import pickle
-import time
 
 views = Blueprint('views', __name__)
-
-DETAIL_CSV_COLS = [
-    'id',
-    'call_issue',
-    'created_at',
-    'updated_at',
-    'tenant_first_name',
-    'tenant_last_name',
-    'tenant_phone_number',
-    'tenant_email',
-    'street',
-    'unit_number',
-    'city',
-    'state',
-    'zip',
-    'lat',
-    'lon',
-    'ward',
-    'landlord_first_name',
-    'landlord_last_name',
-    'landlord_management_company',
-    'landlord_email',
-    'rep_first_name',
-    'rep_last_name',
-    'has_lease',
-    'received_lead_notice',
-    'number_of_children_under_six',
-    'number_of_units_in_building',
-    'is_owner_occupied',
-    'is_subsidized',
-    'subsidy_type',
-    'is_rlto',
-    'is_referred_by_info',
-    'is_counseled_in_spanish',
-    'is_referred_to_attorney',
-    'referred_to_building_organizer',
-    'categories',
-    'title',
-    'closed',
-    'resolved',
-    'area_of_residence',
-    'efforts_to_fix',
-    'message',
-    'urgency',
-    'entry_availability',
-    'referred_to_whom',
-    'notes',
-    'heard_about_mto_from',
-    'materials_sent',
-    'is_interested_in_membership',
-    'is_interested_in_tenant_congress',
-    'number_of_materials_sent',
-    'is_tenant_interested_in_volunteering',
-    'is_referred_to_agency',
-    'is_walkin'
-]
 
 
 def handle_dates(start_date, end_date):
@@ -93,29 +34,25 @@ def handle_dates(start_date, end_date):
 
 
 def call_issue_geog_query(cls, start_date, end_date, categories, zip_codes):
-    filter_list = [
-        cls.created_at >= start_date,
-        cls.created_at <= end_date
-    ]
+    filter_list = [cls.created_at >= start_date, cls.created_at <= end_date]
     if categories:
-        filter_list.append(
-            Categories.name.in_(categories.split(','))
-        )
+        filter_list.append(Categories.name.in_(categories.split(',')))
     if zip_codes:
-        filter_list.append(
-            Addresses.zip.in_(zip_codes.split(','))
-        )
+        filter_list.append(Addresses.zip.in_(zip_codes.split(',')))
 
     return session.query(
         array_agg(Categories.name).label('categories'),
         cls.id.label('id'),
         cls.created_at.label('created_at'),
         Addresses.lat.label('lat'),
-        Addresses.lon.label('lon')
-    ).outerjoin(cls.categories, Addresses
-    ).filter(*filter_list
-    ).order_by(cls.created_at.desc()
-    ).group_by(cls.id, cls.created_at, Addresses
+        Addresses.lon.label('lon'),
+    ).outerjoin(
+        cls.categories,
+        Addresses,
+    ).filter(*filter_list).order_by(cls.created_at.desc()).group_by(
+        cls.id,
+        cls.created_at,
+        Addresses,
     ).distinct(cls.id, cls.created_at)
 
 
@@ -125,8 +62,12 @@ def handle_geog_filter(request, start_date, end_date):
     geog = request.args.get('geog', 'wards')
 
     combined_query = union_all(
-        call_issue_geog_query(Calls, start_date, end_date, categories, zip_codes),
-        call_issue_geog_query(Issues, start_date, end_date, categories, zip_codes)
+        call_issue_geog_query(
+            Calls, start_date, end_date, categories, zip_codes
+        ),
+        call_issue_geog_query(
+            Issues, start_date, end_date, categories, zip_codes
+        )
     ).alias('call_issues')
 
     current_dir = os.path.dirname(__file__)
@@ -159,6 +100,8 @@ def handle_geog_filter(request, start_date, end_date):
 @views.route('/filter-geo')
 @login_required
 def filter_geo():
+    print(request.args)
+    print(request.args.get('start_date'))
     start_date, end_date = handle_dates(
         request.args.get('start_date'), request.args.get('end_date')
     )
@@ -179,7 +122,9 @@ def filter_csv():
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
 
-    filename = 'sa_export_{}_{}_{}.csv'.format(start_date_str, end_date_str, geog)
+    filename = 'sa_export_{}_{}_{}.csv'.format(
+        start_date_str, end_date_str, geog
+    )
 
     def gen_csv_export():
         # Yield parameters and then column headers
@@ -199,7 +144,9 @@ def filter_csv():
         line.truncate(0)
 
         for i in chi_areas['features']:
-            writer.writerow([i['properties'][geog_name], i['properties']['ci_count']])
+            writer.writerow([
+                i['properties'][geog_name], i['properties']['ci_count']
+            ])
             line.seek(0)
             yield line.read()
             line.truncate(0)
@@ -207,7 +154,9 @@ def filter_csv():
     return Response(
         stream_with_context(gen_csv_export()),
         mimetype='text/csv',
-        headers={'Content-Disposition': 'attachment; filename={}'.format(filename)}
+        headers={
+            'Content-Disposition': 'attachment; filename={}'.format(filename)
+        }
     )
 
 
@@ -223,113 +172,72 @@ def detail_csv():
 
     filter_list = []
     if categories:
-        filter_list.append(
-            Categories.name.in_(categories.split(','))
-        )
+        filter_list.append(Categories.name.in_(categories.split(',')))
     if zip_codes:
-        filter_list.append(
-            Addresses.zip.in_(zip_codes.split(','))
-        )
+        filter_list.append(Addresses.zip.in_(zip_codes.split(',')))
+
+    print(filter_list)
 
     tenant = aliased(User)
     landlord = aliased(User)
     rep = aliased(User)
 
     call_query = session.query(
-        Calls, Addresses, tenant, landlord, rep
-        # Calls.id.label('id'),
-        # Calls.created_at.label('created_at'),
-        # Calls.updated_at.label('updated_at'),
-        # tenant.first_name.label('tenant_first_name'),
-        # tenant.last_name.label('tenant_last_name'),
-        # tenant.phone_number.label('tenant_phone_number'),
-        # tenant.email.label('tenant_email'),
-        # Addresses.street.label('street'),
-        # Addresses.unit_number.label('unit_number'),
-        # Addresses.city.label('city'),
-        # Addresses.state.label('state'),
-        # Addresses.zip.label('zip'),
-        # Addresses.lat.label('lat'),
-        # Addresses.lon.label('lon'),
-        # landlord.first_name.label('landlord_first_name'),
-        # landlord.last_name.label('landlord_last_name'),
-        # landlord.management_company.label('landlord_management_company'),
-        # landlord.email.label('landlord_email'),
-        # rep.first_name.label('rep_first_name'),
-        # rep.first_name.label('rep_first_name'),
-        # Calls.has_lease.label('has_lease'),
-        # Calls.received_lead_notice.label('received_lead_notice'),
-        # Calls.number_of_children_under_six.label('number_of_children_under_six'),
-        # Calls.number_of_units_in_building.label('number_of_units_in_building'),
-        # Calls.is_owner_occupied.label('is_owner_occupied'),
-        # Calls.is_subsidized.label('is_subsidized'),
-        # Calls.subsidy_type.label('subsidy_type'),
-        # Calls.is_rlto.label('is_rlto'),
-        # Calls.is_referred_by_info.label('is_referred_by_info'),
-        # Calls.is_counseled_in_spanish.label('is_counseled_in_spanish'),
-        # Calls.is_referred_to_attorney.label('is_referred_to_attorney'),
-        # Calls.is_referred_to_building_organizer.label('referred_to_building_organizer'),
-        # Calls.referred_to_whom.label('referred_to_whom'),
-        # Calls.notes.label('notes'),
-        # Calls.heard_about_mto_from.label('heard_about_mto_from'),
-        # Calls.materials_sent.label('materials_sent'),
-        # Calls.is_interested_in_membership.label('is_interested_in_membership'),
-        # Calls.is_interested_in_tenant_congress.label('is_interested_in_tenant_congress'),
-        # Calls.number_of_materials_sent.label('number_of_materials_sent'),
-        # Calls.is_tenant_interested_in_volunteering.label('is_tenant_interested_in_volunteering'),
-        # Calls.is_referred_to_agency.label('is_referred_to_agency'),
-        # Calls.is_walkin.label('is_walkin'),
-        # sqlalchemy.func.array_to_string(
-        #     array_agg(Categories.name), ','
-        # ).label('categories')
-        ).outerjoin(Calls.categories, Addresses
-        ).outerjoin(tenant, Calls.tenant
-        ).outerjoin(landlord, Calls.landlord
-        ).outerjoin(rep, Calls.rep
-        ).filter(*([Calls.created_at >= start_date, Calls.created_at <= end_date] + filter_list)
-        ).order_by(Calls.created_at.asc()
-        ).group_by(Calls, tenant, Addresses, landlord, rep)
+        Calls,
+        Addresses,
+        tenant,
+        landlord,
+        rep,
+    ).outerjoin(
+        Calls.categories,
+        Addresses,
+    ).outerjoin(
+        tenant,
+        Calls.tenant,
+    ).outerjoin(
+        landlord,
+        Calls.landlord,
+    ).outerjoin(
+        rep, Calls.rep,
+    ).filter(
+        Calls.created_at >= start_date,
+        Calls.created_at <= end_date,
+        *filter_list,
+    ).order_by(Calls.created_at.asc()).group_by(
+        Calls,
+        tenant,
+        Addresses,
+        landlord,
+        rep,
+    )
 
     issue_query = session.query(
-        Issues, tenant, Addresses, landlord
-        # Issues.id.label('id'),
-        # Issues.created_at.label('created_at'),
-        # Issues.updated_at.label('updated_at'),
-        # tenant.first_name.label('tenant_first_name'),
-        # tenant.last_name.label('tenant_last_name'),
-        # tenant.phone_number.label('tenant_phone_number'),
-        # tenant.email.label('tenant_email'),
-        # Addresses.street.label('street'),
-        # Addresses.unit_number.label('unit_number'),
-        # Addresses.city.label('city'),
-        # Addresses.state.label('state'),
-        # Addresses.zip.label('zip'),
-        # Addresses.lat.label('lat'),
-        # Addresses.lon.label('lon'),
-        # landlord.first_name.label('landlord_first_name'),
-        # landlord.last_name.label('landlord_last_name'),
-        # landlord.management_company.label('landlord_management_company'),
-        # landlord.email.label('landlord_email'),
-        # Issues.closed.label('closed'),
-        # Issues.resolved.label('resolved'),
-        # Issues.title.label('title'),
-        # Issues.message.label('message'),
-        # Issues.area_of_residence.label('area_of_residence'),
-        # Issues.efforts_to_fix.label('efforts_to_fix'),
-        # Issues.urgency.label('urgency'),
-        # Issues.entry_availability.label('entry_availability'),
-        # sqlalchemy.func.array_to_string(
-        #     array_agg(Categories.name), ','
-        # ).label('categories')
-        ).outerjoin(Issues.categories, Addresses
-        ).outerjoin(tenant, Issues.tenant
-        ).outerjoin(landlord, Issues.landlord
-        ).filter(*([Issues.created_at >= start_date, Issues.created_at <= end_date] + filter_list)
-        ).order_by(Issues.created_at.asc()
-        ).group_by(Issues, tenant, Addresses, landlord)
+        Issues,
+        tenant,
+        Addresses,
+        landlord,
+    ).outerjoin(
+        Issues.categories,
+        Addresses,
+    ).outerjoin(
+        tenant,
+        Issues.tenant,
+    ).outerjoin(
+        landlord,
+        Issues.landlord,
+    ).filter(
+        Issues.created_at >= start_date,
+        Issues.created_at <= end_date,
+        *filter_list,
+    ).order_by(Issues.created_at.asc()).group_by(
+        Issues,
+        tenant,
+        Addresses,
+        landlord,
+    )
 
-    calls = [dict(zip(c.keys(), c)) for c in call_query]
-    issues = [dict(zip(i.keys(), i)) for i in issue_query]
+    calls = [RecordRow('Calls', c) for c in call_query]
+    issues = [RecordRow('Issues', i) for i in issue_query]
     calls_issues = calls + issues
 
     current_dir = os.path.dirname(__file__)
@@ -345,18 +253,16 @@ def detail_csv():
         ward = a['properties']['ward']
         tree.insert({'ward': ward, 'shape': shp}, Rect(*shp.bounds))
 
-    for ci in calls_issues:
-        ci['call_issue'] = 'issue' if ci.get('title') else 'call'
-        print(ci['Calls'].tenant)
-        for r in tree.query_point((ci['lon'], ci['lat'])):
+    for record in calls_issues:
+        for r in tree.query_point((record.lon, record.lat)):
             if not r.leaf_obj:
                 continue
             shp = r.leaf_obj()
             if shp is None:
                 continue
-            pt = Point(ci['lon'], ci['lat'])
+            pt = Point(record.lon, record.lat)
             if pt.within(shp['shape']):
-                ci['ward'] = shp['ward']
+                record.ward = shp['ward']
 
     start_date_str = start_date.strftime('%Y-%m-%d')
     end_date_str = end_date.strftime('%Y-%m-%d')
@@ -364,18 +270,16 @@ def detail_csv():
     filename = 'sa_export_detail_{}_{}.csv'.format(start_date_str, end_date_str)
 
     def gen_csv_export():
-        line = StringIO.StringIO()
+        line = StringIO()
         writer = csv.writer(line)
 
-        writer.writerow(DETAIL_CSV_COLS)
+        writer.writerow(CSV_COLS)
         line.seek(0)
         yield line.read()
         line.truncate(0)
 
-        for ci in calls_issues:
-            writer.writerow(
-                [unicode(ci.get(col, '')).encode('ascii', errors='ignore') for col in DETAIL_CSV_COLS]
-            )
+        for record in calls_issues:
+            writer.writerow(record.as_list())
             line.seek(0)
             yield line.read()
             line.truncate(0)
@@ -383,7 +287,9 @@ def detail_csv():
     return Response(
         stream_with_context(gen_csv_export()),
         mimetype='text/csv',
-        headers={'Content-Disposition': 'attachment; filename={}'.format(filename)}
+        headers={
+            'Content-Disposition': f'attachment; filename={filename}'
+        }
     )
 
 
@@ -415,15 +321,14 @@ def print_view():
         # If in same year, return Mon-Mon YYYY
         else:
             report_time = '{}-{} {}'.format(
-                start_date.strftime('%b'),
-                end_date.strftime('%b'),
+                start_date.strftime('%b'), end_date.strftime('%b'),
                 start_date.year
             )
     # If not same year, return Mon YYYY-Mon YYYY
     else:
         report_time = '{} {}-{} {}'.format(
-            start_date.strftime('%b'), start_date.year,
-            end_date.strftime('%b'), end_date.year
+            start_date.strftime('%b'), start_date.year, end_date.strftime('%b'),
+            end_date.year
         )
     if request.args.get('report_title'):
         report_title = request.args.get('report_title')

@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_login import LoginManager
 from .views import views
 from .auth import auth, login_manager
 from .database import db_session
@@ -14,12 +13,15 @@ def create_app():
     login_manager.init_app(app)
     return app
 
+
 # Exposing so can be picked up by Zappa
 app = create_app()
+
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     db_session.remove()
+
 
 if __name__ == "__main__":
     import sys

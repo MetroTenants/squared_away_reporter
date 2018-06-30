@@ -1,17 +1,20 @@
-from sqlalchemy import Column, Integer, Float, String, DateTime, ForeignKey, \
-    Boolean, Text, Table
-from sqlalchemy.orm import relationship, backref, synonym, aliased
-from .database import Base, db_session
 from flask_bcrypt import Bcrypt
+from sqlalchemy import (Boolean, Column, DateTime, Float, ForeignKey, Integer,
+                        String, Table, Text)
+from sqlalchemy.orm import aliased, backref, relationship, synonym  # noqa
+
+from .database import Base, db_session
 
 bcrypt = Bcrypt()
 
-call_category_table = Table('calls_categories', Base.metadata,
+call_category_table = Table(
+    'calls_categories', Base.metadata,
     Column('call_id', Integer, ForeignKey('calls.id')),
     Column('category_id', Integer, ForeignKey('categories.id'))
 )
 
-issue_category_table = Table('categories_issues', Base.metadata,
+issue_category_table = Table(
+    'categories_issues', Base.metadata,
     Column('issue_id', Integer, ForeignKey('issues.id')),
     Column('category_id', Integer, ForeignKey('categories.id'))
 )
@@ -86,21 +89,23 @@ class Calls(Base):
     updated_at = Column(DateTime)
     address_id = Column(Integer, ForeignKey('addresses.id'))
     address = relationship(Addresses, foreign_keys=address_id)
-    categories = relationship('Categories',
-                              secondary=call_category_table,
-                              backref='calls')
+    categories = relationship(
+        'Categories', secondary=call_category_table, backref='calls'
+    )
     tenant_id = Column(Integer, ForeignKey('users.id'))
-    tenant = relationship('User',
-        primaryjoin="Calls.tenant_id==User.id",
-        foreign_keys=tenant_id)
+    tenant = relationship(
+        'User', primaryjoin="Calls.tenant_id==User.id", foreign_keys=tenant_id
+    )
     landlord_id = Column(Integer, ForeignKey('users.id'))
-    landlord = relationship('User',
+    landlord = relationship(
+        'User',
         primaryjoin="Calls.landlord_id==User.id",
-        foreign_keys=landlord_id)
+        foreign_keys=landlord_id
+    )
     rep_id = Column(Integer, ForeignKey('users.id'))
-    rep = relationship('User',
-        primaryjoin="Calls.rep_id==User.id",
-        foreign_keys=rep_id)
+    rep = relationship(
+        'User', primaryjoin="Calls.rep_id==User.id", foreign_keys=rep_id
+    )
     has_lease = Column(Boolean)
     received_lead_notice = Column(Boolean)
     number_of_children_under_six = Column(String)
@@ -133,18 +138,20 @@ class Issues(Base):
     address_id = Column(Integer, ForeignKey('addresses.id'))
     address = relationship(Addresses, foreign_keys=address_id)
     tenant_id = Column(Integer, ForeignKey('users.id'))
-    tenant = relationship('User',
-        primaryjoin="Issues.tenant_id==User.id",
-        foreign_keys=tenant_id)
+    tenant = relationship(
+        'User', primaryjoin="Issues.tenant_id==User.id", foreign_keys=tenant_id
+    )
     landlord_id = Column(Integer, ForeignKey('users.id'))
-    landlord = relationship('User',
+    landlord = relationship(
+        'User',
         primaryjoin="Issues.landlord_id==User.id",
-        foreign_keys=landlord_id)
+        foreign_keys=landlord_id
+    )
     title = Column(Text)
     message = Column(Text)
-    categories = relationship('Categories',
-                              secondary=issue_category_table,
-                              backref='issues')
+    categories = relationship(
+        'Categories', secondary=issue_category_table, backref='issues'
+    )
     closed = Column(DateTime)
     resolved = Column(DateTime)
     area_of_residence = Column(String)
