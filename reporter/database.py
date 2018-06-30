@@ -4,8 +4,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker
 
-from .models import Addresses, Calls, Categories, Issues  # noqa
-
 engine = create_engine(
     'postgres://{}:{}@{}:{}/{}'.format(
         os.getenv('DB_USER'),
@@ -23,3 +21,5 @@ db_session = scoped_session(
 )
 
 Base = declarative_base()
+
+from .models import Addresses, Calls, Categories, Issues  # noqa

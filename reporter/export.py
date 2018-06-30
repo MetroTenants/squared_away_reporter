@@ -68,30 +68,26 @@ ADDRESS_COLS = [
 
 
 class RecordRow(object):
-    def __init__(self, namespace, row):
+    def __init__(self, row):
         for col in CSV_COLS:
-            row_obj = getattr(row, namespace)
             col_prefix = col.split('_')[0]
             if col == 'call_issue':
-                attr = 'call' if namespace == 'Calls' else 'issue'
+                attr = 'issue' if getattr(row, 'title', None) else 'call'
             elif col_prefix in USER_PREFIXES:
                 attr_name = col[len(col_prefix) + 1:]
-                user_obj = getattr(row_obj, col_prefix, None)
+                user_obj = getattr(row, col_prefix, None)
                 if user_obj:
                     attr = getattr(user_obj, attr_name, None)
                 else:
                     attr = None
             elif col == 'categories':
-                categories = getattr(row_obj, 'categories', [])
+                categories = getattr(row, 'categories', [])
                 attr = ', '.join([getattr(c, 'name', '') for c in categories])
             elif col in ADDRESS_COLS:
-                attr = getattr(row.Addresses, col, None)
+                attr = getattr(row.address, col, None)
             else:
-                attr = getattr(row_obj, col, None)
+                attr = getattr(row, col, None)
             setattr(self, col, attr)
-
-    def as_dict(self):
-        return {c: getattr(self, c, '') for c in CSV_COLS}
 
     def as_list(self):
         return [getattr(self, c, '') for c in CSV_COLS]
