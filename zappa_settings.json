@@ -6,7 +6,7 @@
     },
     "prod": {
         "app_function": "reporter.__init__.app",
-        "s3_bucket": "squared-away-reports-prod",
+        "s3_bucket": "squared-away-reports-production",
         "keep_warm": false,
         "domain": "reports.squaredawaychicago.com",
         "certificate_arn": "arn:aws:acm:us-east-1:489293759233:certificate/9788726d-2f40-46d2-94a3-b0f88e3ab06a",

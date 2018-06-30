@@ -5,19 +5,13 @@ Zappa and AWS Lambda functions.
 
 ## Running Locally
 
-Set environment variables (database connection information in `database.py`, and
-`SECRET_KEY`). This will only run with an application where the database matches
-the schema in `models.py`, and it is intended as a read-only app.
+Set environment variables (database connection information in `database.py`, and `SECRET_KEY`). This will only run with an application where the database matches the schema in `models.py`, and it is intended as a read-only app.
 
-Create a virtual environment, and run `pip install -r requirements.txt`. Once you've
-installed dependencies, just run `python runserver.py` and you should see the application
-running locally at `localhost:5000`.
+Create a virtual environment, and run `pipenv install`. Once you've installed dependencies, just run `pipenv run python runserver.py` and you should see the application running locally at `localhost:5000`.
 
 ## Deploying
 
-If you want to deploy to AWS, you'll need valid AWS credentials set up locally.
-To initially deploy the app, run `zappa deploy dev`, and to update it later run
-`zappa update dev`.
+If you want to deploy to AWS, you'll need valid AWS credentials set up locally. To initially deploy the app, run `pipenv run zappa deploy dev`, and to update it later run `pipenv run zappa update dev`.
 
 ## Credits
 
