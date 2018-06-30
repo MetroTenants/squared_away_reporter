@@ -1,18 +1,31 @@
 {% extends "base.html" %}
 {% block title %}Squared Away Reports{% endblock %}
 
+{% block style %}
+<style media="print">
+  .row > div:first-child {
+    display: none;
+  }
+  #chart-panel {
+    width: 100%;
+    text-align: center;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
-<div class='row col-md-12 col-offset-1'>
-  <h1>Squared Away Reports</h1>
-</div>
-<div class='row main-content'>
-  <div class='col-md-5 col-offset-1'>
+<div class='row'>
+  <div class="col-md-4 col-offset-1">
+    <h1>Squared Away Reports</h1>
     <div class="form-group">
       <div>
         <a href="/">
           <button class="btn" type="button">Map Report</button>
         </a>
+        <button class="btn print-hide pull-right" onclick="window.print(); return false">
+          <span class="glyphicon glyphicon-print"></span>
+        </button>
       </div>
       <div>
         <label for="start_date">Start Date</label>
@@ -50,62 +63,64 @@
       </div>
       <div>
         <label for="wards">Ward(s)</label>
+        <small class="text-muted">Shows data for all wards by default if none are selected</small>
+        <small class="text-muted">Hold Ctrl or Command and click to select multiple</small>
         <select multiple class="form-control" id="wards">
-            <option>1</option>
-            <option>2</option>
-            <option>3</option>
-            <option>4</option>
-            <option>5</option>
-            <option>6</option>
-            <option>7</option>
-            <option>8</option>
-            <option>9</option>
-            <option>10</option>
-            <option>11</option>
-            <option>12</option>
-            <option>13</option>
-            <option>14</option>
-            <option>15</option>
-            <option>16</option>
-            <option>17</option>
-            <option>18</option>
-            <option>19</option>
-            <option>20</option>
-            <option>21</option>
-            <option>22</option>
-            <option>23</option>
-            <option>24</option>
-            <option>25</option>
-            <option>26</option>
-            <option>27</option>
-            <option>28</option>
-            <option>29</option>
-            <option>30</option>
-            <option>31</option>
-            <option>32</option>
-            <option>33</option>
-            <option>34</option>
-            <option>35</option>
-            <option>36</option>
-            <option>37</option>
-            <option>38</option>
-            <option>39</option>
-            <option>40</option>
-            <option>41</option>
-            <option>42</option>
-            <option>43</option>
-            <option>44</option>
-            <option>45</option>
-            <option>46</option>
-            <option>47</option>
-            <option>48</option>
-            <option>49</option>
-            <option>50</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+          <option>4</option>
+          <option>5</option>
+          <option>6</option>
+          <option>7</option>
+          <option>8</option>
+          <option>9</option>
+          <option>10</option>
+          <option>11</option>
+          <option>12</option>
+          <option>13</option>
+          <option>14</option>
+          <option>15</option>
+          <option>16</option>
+          <option>17</option>
+          <option>18</option>
+          <option>19</option>
+          <option>20</option>
+          <option>21</option>
+          <option>22</option>
+          <option>23</option>
+          <option>24</option>
+          <option>25</option>
+          <option>26</option>
+          <option>27</option>
+          <option>28</option>
+          <option>29</option>
+          <option>30</option>
+          <option>31</option>
+          <option>32</option>
+          <option>33</option>
+          <option>34</option>
+          <option>35</option>
+          <option>36</option>
+          <option>37</option>
+          <option>38</option>
+          <option>39</option>
+          <option>40</option>
+          <option>41</option>
+          <option>42</option>
+          <option>43</option>
+          <option>44</option>
+          <option>45</option>
+          <option>46</option>
+          <option>47</option>
+          <option>48</option>
+          <option>49</option>
+          <option>50</option>
         </select>
       </div>
       <div>
         <label for="report_title">Report Title</label>
-        <input type="text" id="report_title" class="form-control" placeholder="Calls and Issues" />
+        <input type="text" id="report_title" class="form-control" placeholder="Call and Issue Categories by Ward" />
       </div>
       <div>
         <label for="color_choice">Colors</label>
@@ -119,28 +134,23 @@
       </div>
     </div>
     <button class="btn" type="button" id="updatevals">Update Chart</button>
-    <h3>Downloads</h3>
-    <div class="btn-list">
-      <a id="csvLink" href="filter-csv">
-        <button class="btn" type="button">Download CSV by Areas</button>
-      </a>
-      <a id="detailCsvLink" href="detail-csv">
-        <button class="btn" type="button">Download Detail CSV</button>
-      </a>
-      <a id="printLink" href="print">
-        <button class="btn" type="button">Print Map</button>
-      </a>
+    </div>
+    <div class="col-md-8 col-offset-1" id="chart-panel">
+      <h3 id="reportTitle">Call and Issue Categories by Ward</h3>
+      <h5 id="wardTimeLabel">All Wards - Jan 2017-Jan 2018</h5>
+      <div class="loader" style="display: none;"></div>
+      <svg width="100%" height="700px"></svg>
+      <div id="print-notice">
+        <p>Chart produced by the Metropolitan Tenants Organization on {{ today.strftime('%m-%d-%Y') }}</p>
+      </div>
     </div>
   </div>
-  <div class='col-md-7 col-offset-1' id="map-panel">
-    <div class="loader" style="display: none;"></div>
-    <svg width="100%" height="750px"></svg>
-  </div>
+  
 </div>
 </div>
 
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+<script src="{{ url_for('static', filename='js/breakdown.js') }}"></script>
 {% endblock %}

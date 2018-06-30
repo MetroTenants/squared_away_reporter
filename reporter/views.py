@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+from collections import defaultdict
 from datetime import date, datetime, timedelta
 from io import BytesIO, StringIO
 
@@ -263,10 +264,51 @@ def index():
     return render_template('index.html')
 
 
+@views.route('/breakdown-wards')
+@login_required
+def breakdown_wards():
+    start_date, end_date = handle_dates(
+        request.args.get('start_date'), request.args.get('end_date')
+    )
+    categories = request.args.get('categories')
+
+    filter_list = []
+    if categories:
+        filter_list.append(Categories.name.in_(categories.split(',')))
+
+    combined_query = union_all(
+        call_issue_geog_query(
+            Calls, start_date, end_date, categories, None
+        ),
+        call_issue_geog_query(
+            Issues, start_date, end_date, categories, None
+        )
+    ).alias('call_issues')
+
+    chi_wards, tree = load_rtree('wards')
+
+    ward_dict = {str(i): defaultdict(lambda: 0) for i in range(1, 51)}
+    for p in session.query(combined_query):
+        if p.lon is None or p.lat is None:
+            continue
+        for r in tree.query_point((p.lon, p.lat)):
+            if not r.leaf_obj():
+                continue
+            shp = r.leaf_obj()
+            pt = Point(p.lon, p.lat)
+            if pt.within(shp['shape']):
+                ward = chi_wards['features'][shp['idx']]['properties']['ward']
+                for c in p.categories:
+                    if c is not None:
+                        ward_dict[ward][c] += 1
+
+    return jsonify(ward_dict)
+
+
 @views.route('/breakdown')
 @login_required
 def breakdown():
-    return render_template('breakdown.html')
+    return render_template('breakdown.html', today=date.today())
 
 
 @views.route('/print')

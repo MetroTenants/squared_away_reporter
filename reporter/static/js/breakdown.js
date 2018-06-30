@@ -1,7 +1,5 @@
-// var svg, width, height, projection, path, spinner, tooltip, cbColors;
-
 function barChart() {
-  var margin = { top: 10, right: 10, bottom: 60, left: 40 },
+  var margin = { top: 10, right: 10, bottom: 60, left: 150 },
     width = 350,
     height = 350,
     labelValue = function (d) { return d.label; },
@@ -13,7 +11,7 @@ function barChart() {
     selection.each(function (data) {
       data = data.map(function (d, i) {
         return { label: labelValue(d), value: dataValue(d) };
-      });
+      }).sort(function (a, b) { return d3.descending(a.value, b.value); });
       var x = d3.scaleBand().rangeRound([0, height - margin.top - margin.bottom]).padding(bandPadding),
         y = d3.scaleLinear().rangeRound([0, width - margin.left - margin.right]);
 
@@ -24,7 +22,6 @@ function barChart() {
       var gEnter = svg.enter().append("svg").append("g");
       gEnter.append("g").attr("class", "axis x");
       gEnter.append("g").attr("class", "axis y").append("text");
-      gEnter.selectAll(".bar").data(data).enter().append("rect").attr("class", "bar");
 
       var svg = selection.select("svg");
       svg.attr('width', width).attr('height', height);
@@ -33,6 +30,9 @@ function barChart() {
 
       g.select("g.axis.x")
         .call(d3.axisLeft(x));
+
+      g.selectAll("g.axis text")
+        .style("font-size", "11px");
 
       g.select("g.axis.y")
         .attr("class", "axis y")
@@ -43,11 +43,16 @@ function barChart() {
         .attr("transform", "rotate(-90)")
         .attr("y", 6)
         .attr("dy", "0.71em")
-        .attr("text-anchor", "end")
-        .text("Population");
+        .attr("text-anchor", "end");
 
-      g.selectAll("rect.bar")
-        .data(data)
+
+      var rects = g.selectAll("rect.bar")
+        .data(data, function (d) { return d.label; });
+
+      rects.exit().remove();
+      rects.enter().append("rect")
+        .merge(rects)
+        .attr("class", "bar")
         .attr("x", "1")
         .attr("y", function (d) { return x(d.label); })
         .attr("fill", color)
@@ -88,9 +93,9 @@ function barChart() {
     return chart;
   };
 
-  chart.colorOptions = function (_) {
-    if (!arguments.length) return colorOptions;
-    colorOptions = _;
+  chart.color = function (_) {
+    if (!arguments.length) return color;
+    color = _;
     return chart;
   };
 
@@ -106,11 +111,12 @@ String.prototype.lpad = function (padString, length) {
 };
 
 (function () {
+  var spinner = document.querySelector("div.loader");
   var svg = d3.select("svg");
   var bars = barChart();
 
   function resize() {
-    if (d3.select("#chart svg").empty()) {
+    if (svg.empty()) {
       return;
     }
     bars.width(+svg.style("width").replace(/(px)/g, ""))
@@ -118,9 +124,31 @@ String.prototype.lpad = function (padString, length) {
     svg.call(bars);
   }
 
+  d3.select(window).on('resize', resize);
+
   function handleData(data) {
-    bars.data(data);
-    svg.call(bars);
+    var wards = document.querySelectorAll("#wards option:checked");
+    if (!wards.length) {
+      wards = document.querySelectorAll("#wards option");
+    }
+    var wardList = Array.prototype.slice.call(wards).map(function (w) { return w.value; });
+    var wardData = wardList.map(function (w) {
+      return data[w];
+    }).reduce(function (a, b) {
+      Object.keys(b).forEach(function (k) {
+        if (b.hasOwnProperty(k)) {
+          a[k] = (a[k] || 0) + b[k];
+        }
+      });
+      return a;
+    }, {});
+
+    categoryData = Object.keys(wardData).map(function (key) {
+      return { label: key, value: wardData[key] };
+    });
+    svg.datum(categoryData).call(bars);
+    spinner.style.display = "none";
+    resize();
   }
 
   // Setting the start and end date inputs
@@ -133,14 +161,14 @@ String.prototype.lpad = function (padString, length) {
   startDate.value = (dt.getFullYear() - 1) + "-" + mn + "-" + dy;
   endDate.value = dt.getFullYear() + "-" + mn + "-" + dy;
 
-  var button = document.querySelector("button");
+  var button = document.querySelector("#updatevals");
   button.addEventListener("click", function () {
     spinner.style.display = "inherit";
 
-    var queryUrl = "filter-wards?";
+    var queryUrl = "breakdown-wards?";
     cbColors = document.querySelector("#color_choice").value;
 
-    bars.colorOptions(colorbrewer[cbColors][5][0]);
+    bars.color(colorbrewer[cbColors][5][3]);
     d3.select("#chart").call(bars);
 
     var startDate = document.getElementById("start_date");
@@ -148,6 +176,8 @@ String.prototype.lpad = function (padString, length) {
     var categoryValues = document.querySelectorAll("#categories option:checked");
     var wards = document.querySelectorAll("#wards option:checked");
     var reportTitle = document.getElementById("report_title").value;
+    var reportSubTitle = document.getElementById("wardTimeLabel");
+    var wardStr;
 
     var queryArgs = [];
 
@@ -164,20 +194,21 @@ String.prototype.lpad = function (padString, length) {
       queryArgs.push("categories=" + catArr.map(function (c) { return c.value; }).join(","));
     }
     if (wards) {
-      var wardArr = Array.prototype.slice.call(wards);
-      queryArgs.push("wards=" + wardArr.map(function (w) { return w.value; }).join(","));
+      var wardArr = Array.prototype.slice.call(wards).map(function (w) { return w.value; });
+      queryArgs.push("wards=" + wardArr.join(","));
+      if (wardArr.length === 1) {
+        wardStr = "Ward " + wardArr[0]
+      } else {
+        wardStr = "Wards " + wardArr.join(", ");
+      }
+    } else {
+      wardStr = "All Wards";
     }
+    reportSubTitle.innerHTML = wardStr + ": " + startDate.value + " - " + endDate.value;
     if (reportTitle) {
-      queryArgs.push("report_title=" + reportTitle);
+      document.getElementById("reportTitle").innerHTML = reportTitle;
     }
     queryUrl += queryArgs.join("&");
-
-    var csvLink = document.getElementById("csvLink");
-    csvLink.href = "filter-csv?" + queryArgs.join("&");
-    var detailCsvLink = document.getElementById("detailCsvLink");
-    detailCsvLink.href = "detail-csv?" + queryArgs.join("&");
-    var printLink = document.getElementById("printLink");
-    printLink.href = "print?" + queryArgs.join("&");
 
     d3.json(queryUrl, handleData);
   });

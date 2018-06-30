@@ -16,6 +16,10 @@ text {
   font-size: 16px;
 }
 
+small {
+  display: block;
+}
+
 .login-box {
   margin-top: 20px;
 }

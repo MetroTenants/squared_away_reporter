@@ -22,33 +22,33 @@ function handleGeoJson(json) {
   }
 
   var color = d3.scaleQuantize()
-      .domain([0, d3.max(json.features, function(d) {
-        if (d.properties.ci_count) {
-          return d.properties.ci_count;
-        }
-        return 0;
-      })])
-      .range(colorbrewer[cbColors][5]);
+    .domain([0, d3.max(json.features, function (d) {
+      if (d.properties.ci_count) {
+        return d.properties.ci_count;
+      }
+      return 0;
+    })])
+    .range(colorbrewer[cbColors][5]);
 
   var legend = d3.select('svg')
-      .append("g")
-        .attr("class", "legend")
-      .selectAll("g")
-      .data(color.range())
-      .enter()
-      .append('g')
-        .attr('class', 'legend-item')
-        .attr('transform', function(d, i) {
-          var h = 25;
-          var x = 0;
-          var y = (i * h) + (height * 0.7);
-          return 'translate(' + x + ',' + y + ')';
-      });
+    .append("g")
+    .attr("class", "legend")
+    .selectAll("g")
+    .data(color.range())
+    .enter()
+    .append('g')
+    .attr('class', 'legend-item')
+    .attr('transform', function (d, i) {
+      var h = 25;
+      var x = 0;
+      var y = (i * h) + (height * 0.7);
+      return 'translate(' + x + ',' + y + ')';
+    });
 
   legend.append('rect')
-      .attr('width', 25)
-      .attr('height', 25)
-      .style('fill', function(d) { return d; });
+    .attr('width', 25)
+    .attr('height', 25)
+    .style('fill', function (d) { return d; });
 
   var legendText = "Calls/Issues by ";
   if (json.features[0].properties.zip) {
@@ -67,48 +67,48 @@ function handleGeoJson(json) {
     .attr('y', -15)
     .attr('font-weight', 'bold')
     .text(legendText)
-    .attr('transform', 'translate(0,' + (height*0.7) + ')');
+    .attr('transform', 'translate(0,' + (height * 0.7) + ')');
 
   legend.append('text')
-      .attr('x', 35)
-      .attr('y', 20)
-      .text(function(d) {
-        return color.invertExtent(d).map(function(d) { return Math.floor(d); }).join("-");
-      });
+    .attr('x', 35)
+    .attr('y', 20)
+    .text(function (d) {
+      return color.invertExtent(d).map(function (d) { return Math.floor(d); }).join("-");
+    });
 
   svg.select("g.chicago")
     .selectAll("path")
-      .data(json.features, function(d) {
-        return d.properties[areaProp] + "-" + d.properties.ci_count;
-      })
-      .enter().append("path")
-        .attr("d", path)
-        .attr("fill-opacity", 0.8)
-        .attr("stroke", "#6F7070")
-        .attr("stroke-opacity", 0.8)
-        .attr("stroke-width", 1)
-        .attr("fill", function(d) { return color(d.properties.ci_count);})
-        .on("mouseover", function(d){
-          return tooltip.style("visibility", "visible")
-            .html("<b>" + tooltA + "</b>: " + d.properties[areaProp] + "<br><b>Count</b>: " + d.properties.ci_count)
-        })
-        .on("mousemove", function() {
-          tooltip.style("top", (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10)+"px");
-        })
-        .on("mouseout", function(){return tooltip.style("visibility", "hidden");});;
+    .data(json.features, function (d) {
+      return d.properties[areaProp] + "-" + d.properties.ci_count;
+    })
+    .enter().append("path")
+    .attr("d", path)
+    .attr("fill-opacity", 0.8)
+    .attr("stroke", "#6F7070")
+    .attr("stroke-opacity", 0.8)
+    .attr("stroke-width", 1)
+    .attr("fill", function (d) { return color(d.properties.ci_count); })
+    .on("mouseover", function (d) {
+      return tooltip.style("visibility", "visible")
+        .html("<b>" + tooltA + "</b>: " + d.properties[areaProp] + "<br><b>Count</b>: " + d.properties.ci_count)
+    })
+    .on("mousemove", function () {
+      tooltip.style("top", (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
+    })
+    .on("mouseout", function () { return tooltip.style("visibility", "hidden"); });;
 
   spinner.style.display = "none";
 }
 
 //pads left
-String.prototype.lpad = function(padString, length) {
-	var str = this;
-    while (str.length < length)
-        str = padString + str;
-    return str;
+String.prototype.lpad = function (padString, length) {
+  var str = this;
+  while (str.length < length)
+    str = padString + str;
+  return str;
 };
 
-(function() {
+(function () {
   bbox = document.getElementsByTagName("svg")[0].getBoundingClientRect();
   width = bbox.width;
   height = bbox.height;
@@ -128,11 +128,11 @@ String.prototype.lpad = function(padString, length) {
   svg.append("g")
     .attr("class", "chicago");
 
-  projection = d3.geoMercator().scale(1).translate([0,0]);
+  projection = d3.geoMercator().scale(1).translate([0, 0]);
   path = d3.geoPath().projection(projection);
 
   var button = document.getElementById("updatevals");
-  button.addEventListener("click", function() {
+  button.addEventListener("click", function () {
     spinner.style.display = "inherit";
 
     var queryUrl = "filter-geo?";
@@ -157,11 +157,11 @@ String.prototype.lpad = function(padString, length) {
     }
     if (categoryValues) {
       var catArr = Array.prototype.slice.call(categoryValues);
-      queryArgs.push("categories=" + catArr.map(function(c){return c.value;}).join(","));
+      queryArgs.push("categories=" + catArr.map(function (c) { return c.value; }).join(","));
     }
     if (zipCodes) {
       var zipArr = Array.prototype.slice.call(zipCodes);
-      queryArgs.push("zip_codes=" + zipArr.map(function(z){return z.value;}).join(","));
+      queryArgs.push("zip_codes=" + zipArr.map(function (z) { return z.value; }).join(","));
     }
     if (reportTitle) {
       queryArgs.push("report_title=" + reportTitle);
