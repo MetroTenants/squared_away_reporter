@@ -1,12 +1,12 @@
 {
     "dev": {
-        "app_function": "reporter.__init__.app",
+        "app_function": "reporter.app",
         "s3_bucket": "squared-away-reports-dev",
         "keep_warm": false
     },
     "prod": {
-        "app_function": "reporter.__init__.app",
-        "s3_bucket": "squared-away-reports-production",
+        "app_function": "reporter.app",
+        "s3_bucket": "squared-away-reports-prod",
         "keep_warm": false,
         "domain": "reports.squaredawaychicago.com",
         "certificate_arn": "arn:aws:acm:us-east-1:489293759233:certificate/9788726d-2f40-46d2-94a3-b0f88e3ab06a",
