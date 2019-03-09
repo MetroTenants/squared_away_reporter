@@ -1,7 +1,9 @@
+from functools import wraps
+
 from flask import Blueprint
 from flask import current_app as app  # noqa
 from flask import redirect, render_template, request, url_for
-from flask_login import LoginManager, login_user, logout_user
+from flask_login import LoginManager, current_user, login_user, logout_user
 from flask_wtf import Form
 from sqlalchemy import func
 from wtforms import PasswordField, TextField
@@ -72,3 +74,15 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('auth.login'))
+
+
+def admin_required(f):
+    """Restrict view to users with 'admin' role"""
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user is None or current_user.role != 'admin':
+            return redirect(url_for('auth.login', next=request.url))
+        return f(*args, **kwargs)
+
+    return decorated_function

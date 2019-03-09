@@ -1,3 +1,7 @@
+import csv
+from io import BytesIO, StringIO
+
+
 CSV_COLS = [
     'id',
     'call_issue',
@@ -66,10 +70,41 @@ ADDRESS_COLS = [
     'lon',
 ]
 
+EVICTION_COLS = [
+    'id',
+    'created_at',
+    'updated_at',
+    'entry_point',
+    'can_tenant_pay_rent',
+    'instructions_given',
+    'did_tenant_call_back',
+    'did_tenant_follow_instructions',
+    'outcome_description',
+    'reminder_date',
+    'language',
+    'marital_status',
+    'num_children',
+    'complaints',
+    'repairs_detail',
+    'court_date',
+    'court_time',
+    'courtroom',
+    'first_time_court',
+    'court_experience',
+    'flags',
+    'household_income',
+    'security_deposit_amount',
+    'monthly_rent',
+    'last_rent_details',
+    'documentation',
+    'additional_info',
+]
 
-class RecordRow(object):
-    def __init__(self, row):
-        for col in CSV_COLS:
+
+class RecordRow:
+    def __init__(self, row, cols=CSV_COLS):
+        self.cols = cols
+        for col in self.cols:
             col_prefix = col.split('_')[0]
             if col == 'call_issue':
                 attr = 'issue' if getattr(row, 'title', None) else 'call'
@@ -84,10 +119,47 @@ class RecordRow(object):
                 categories = getattr(row, 'categories', [])
                 attr = ', '.join([getattr(c, 'name', '') for c in categories])
             elif col in ADDRESS_COLS:
-                attr = getattr(row.address, col, None)
+                if hasattr(row, 'address'):
+                    attr = getattr(row.address, col, None)
+                else:
+                    attr = None
             else:
                 attr = getattr(row, col, None)
             setattr(self, col, attr)
 
     def as_list(self):
-        return [getattr(self, c, '') for c in CSV_COLS]
+        return [getattr(self, c, '') for c in self.cols]
+
+
+class EvictionRecordRow(RecordRow):
+    def __init__(self, row, cols=EVICTION_COLS):
+        self.cols = EVICTION_COLS
+        for col in self.cols:
+            setattr(self, col, getattr(row, col, None))
+        call = None
+        if len(row.calls):
+            call = row.calls[0]
+        call_row = RecordRow(call, cols=CSV_COLS)
+        self.cols = EVICTION_COLS + [f'call_{col}' for col in CSV_COLS]
+        for col in CSV_COLS:
+            setattr(self, f'call_{col}', getattr(call_row, col))
+
+
+class CsvExport:
+    """Accepts columns and a list of lists for writing to BytesIO CSV"""
+    def __init__(self, cols, rows):
+        self.cols = cols
+        self.rows = rows
+
+    def write_rows(self):
+        """Return BytesIO object with data"""
+        proxy = StringIO()
+        mem = BytesIO()
+        writer = csv.writer(proxy)
+        writer.writerow(self.cols)
+        for row in self.rows:
+            writer.writerow(row)
+        mem.write(proxy.getvalue().encode('utf-8'))
+        mem.seek(0)
+        proxy.close()
+        return mem

@@ -174,6 +174,7 @@ String.prototype.lpad = function (padString, length) {
     detailCsvLink.href = "detail-csv?" + queryArgs.join("&");
     var printLink = document.getElementById("printLink");
     printLink.href = "print?" + queryArgs.join("&");
+    document.getElementById("evictionRecordsCsvLink").href = "eviction-record-csv?" + queryArgs.join("&");
 
     d3.json(queryUrl, handleGeoJson);
   });

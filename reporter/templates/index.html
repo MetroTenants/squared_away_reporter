@@ -145,6 +145,11 @@
       <a id="detailCsvLink" href="detail-csv">
         <button class="btn" type="button">Download Detail CSV</button>
       </a>
+      {% if current_user.is_authenticated and current_user.role == 'admin' %}
+      <a id="evictionRecordsCsvLink" href="eviction-record-csv">
+        <button class="btn" type="button">Download Eviction Record Detail CSV for Dates</button>
+      </a>
+      {% endif %}
       <a id="printLink" href="print">
         <button class="btn" type="button">Print Map</button>
       </a>
