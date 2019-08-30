@@ -12,14 +12,14 @@ from wtforms.validators import DataRequired, Email
 from .database import db_session
 from .models import User
 
-auth = Blueprint('auth', __name__)
+auth = Blueprint("auth", __name__)
 
 login_manager = LoginManager()
 
 
 class LoginForm(Form):
-    email = TextField('email', validators=[DataRequired(), Email()])
-    password = PasswordField('password', validators=[DataRequired()])
+    email = TextField("email", validators=[DataRequired(), Email()])
+    password = PasswordField("password", validators=[DataRequired()])
 
     def __init__(self, *args, **kwargs):
         Form.__init__(self, *args, **kwargs)
@@ -30,16 +30,20 @@ class LoginForm(Form):
         if not rv:
             return False
 
-        user = db_session.query(User).filter(
-            func.lower(User.email) == func.lower(self.email.data),
-            User.role.in_(['admin', 'callcenter'])
-        ).first()
+        user = (
+            db_session.query(User)
+            .filter(
+                func.lower(User.email) == func.lower(self.email.data),
+                User.role.in_(["admin", "callcenter"]),
+            )
+            .first()
+        )
         if user is None:
-            self.email.errors.append('Email address is not registered')
+            self.email.errors.append("Email address is not registered")
             return False
 
         if not user.check_password(user.email, self.password.data):
-            self.password.errors.append('Password is not valid')
+            self.password.errors.append("Password is not valid")
             return False
 
         self.user = user
@@ -53,27 +57,27 @@ def load_user(userid):
 
 @login_manager.unauthorized_handler
 def handle_needs_login():
-    return redirect(url_for('auth.login', next=request.path))
+    return redirect(url_for("auth.login", next=request.path))
 
 
-@auth.route('/login/', methods=['GET', 'POST'])
+@auth.route("/login/", methods=["GET", "POST"])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = form.user
         login_user(user)
-        redirect_next = url_for('views.index')
-        if request.args.get('next'):
-            redirect_next = request.args.get('next')
+        redirect_next = url_for("views.index")
+        if request.args.get("next"):
+            redirect_next = request.args.get("next")
         return redirect(redirect_next)
     email = form.email.data
-    return render_template('login.html', form=form, email=email)
+    return render_template("login.html", form=form, email=email)
 
 
-@auth.route('/logout/')
+@auth.route("/logout/")
 def logout():
     logout_user()
-    return redirect(url_for('auth.login'))
+    return redirect(url_for("auth.login"))
 
 
 def admin_required(f):
@@ -81,8 +85,8 @@ def admin_required(f):
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if current_user is None or current_user.role != 'admin':
-            return redirect(url_for('auth.login', next=request.url))
+        if current_user is None or current_user.role != "admin":
+            return redirect(url_for("auth.login", next=request.url))
         return f(*args, **kwargs)
 
     return decorated_function

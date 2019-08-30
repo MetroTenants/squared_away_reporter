@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 flask = "*"
+bcrypt = "==3.1.4"
 flask-bcrypt = "*"
 flask-login = "*"
 flask-wtf = "*"
@@ -18,8 +19,8 @@ futures = "*"
 
 [dev-packages]
 "flake8" = "*"
-yapf = "*"
 isort = "*"
+black = "==19.3b0"
 
 [requires]
 python_version = "3.6"

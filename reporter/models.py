@@ -1,7 +1,17 @@
 from flask_bcrypt import Bcrypt
 from sqlalchemy import (
-    ARRAY, Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, String, Table,
-    Text, Time
+    ARRAY,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+    Text,
+    Time,
 )
 from sqlalchemy.orm import aliased, backref, relationship, synonym  # noqa
 
@@ -10,20 +20,22 @@ from .database import Base, db_session
 bcrypt = Bcrypt()
 
 call_category_table = Table(
-    'calls_categories', Base.metadata,
-    Column('call_id', Integer, ForeignKey('calls.id')),
-    Column('category_id', Integer, ForeignKey('categories.id'))
+    "calls_categories",
+    Base.metadata,
+    Column("call_id", Integer, ForeignKey("calls.id")),
+    Column("category_id", Integer, ForeignKey("categories.id")),
 )
 
 issue_category_table = Table(
-    'categories_issues', Base.metadata,
-    Column('issue_id', Integer, ForeignKey('issues.id')),
-    Column('category_id', Integer, ForeignKey('categories.id'))
+    "categories_issues",
+    Base.metadata,
+    Column("issue_id", Integer, ForeignKey("issues.id")),
+    Column("category_id", Integer, ForeignKey("categories.id")),
 )
 
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = Column(Integer, primary_key=True)
     first_name = Column(String)
     last_name = Column(String)
@@ -33,10 +45,10 @@ class User(Base):
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
     phone_number = Column(String)
-    password = Column('encrypted_password', String, nullable=False)
+    password = Column("encrypted_password", String, nullable=False)
 
     def __repr__(self):
-        return '<User {}>'.format(self.email)
+        return "<User {}>".format(self.email)
 
     @classmethod
     def get_by_email(cls, email):
@@ -63,7 +75,7 @@ class User(Base):
 
 
 class Addresses(Base):
-    __tablename__ = 'addresses'
+    __tablename__ = "addresses"
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
@@ -77,7 +89,7 @@ class Addresses(Base):
 
 
 class Categories(Base):
-    __tablename__ = 'categories'
+    __tablename__ = "categories"
     id = Column(Integer, primary_key=True)
     name = Column(String)
     created_at = Column(DateTime)
@@ -85,7 +97,7 @@ class Categories(Base):
 
 
 class EvictionRecords(Base):
-    __tablename__ = 'eviction_records'
+    __tablename__ = "eviction_records"
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
@@ -115,29 +127,29 @@ class EvictionRecords(Base):
     last_rent_details = Column(Text)
     documentation = Column(Text)
     additional_info = Column(Text)
-    calls = relationship('Calls', back_populates='eviction_record')
+    calls = relationship("Calls", back_populates="eviction_record")
 
 
 class Calls(Base):
-    __tablename__ = 'calls'
+    __tablename__ = "calls"
     id = Column(Integer, primary_key=True)
-    created_at = Column('datetime_edit', DateTime)
+    created_at = Column("datetime_edit", DateTime)
     updated_at = Column(DateTime)
-    address_id = Column(Integer, ForeignKey('addresses.id'))
+    address_id = Column(Integer, ForeignKey("addresses.id"))
     address = relationship(Addresses, foreign_keys=address_id)
     categories = relationship(
-        'Categories', secondary=call_category_table, backref='calls'
+        "Categories", secondary=call_category_table, backref="calls"
     )
-    tenant_id = Column(Integer, ForeignKey('users.id'))
+    tenant_id = Column(Integer, ForeignKey("users.id"))
     tenant = relationship(
-        'User', primaryjoin="Calls.tenant_id==User.id", foreign_keys=tenant_id
+        "User", primaryjoin="Calls.tenant_id==User.id", foreign_keys=tenant_id
     )
-    landlord_id = Column(Integer, ForeignKey('users.id'))
+    landlord_id = Column(Integer, ForeignKey("users.id"))
     landlord = relationship(
-        'User', primaryjoin="Calls.landlord_id==User.id", foreign_keys=landlord_id
+        "User", primaryjoin="Calls.landlord_id==User.id", foreign_keys=landlord_id
     )
-    rep_id = Column(Integer, ForeignKey('users.id'))
-    rep = relationship('User', primaryjoin="Calls.rep_id==User.id", foreign_keys=rep_id)
+    rep_id = Column(Integer, ForeignKey("users.id"))
+    rep = relationship("User", primaryjoin="Calls.rep_id==User.id", foreign_keys=rep_id)
     has_lease = Column(Boolean)
     received_lead_notice = Column(Boolean)
     number_of_children_under_six = Column(String)
@@ -160,29 +172,29 @@ class Calls(Base):
     is_tenant_interested_in_volunteering = Column(Boolean)
     is_referred_to_agency = Column(Boolean)
     is_walkin = Column(Boolean)
-    eviction_record_id = Column(Integer, ForeignKey('eviction_records.id'))
+    eviction_record_id = Column(Integer, ForeignKey("eviction_records.id"))
     eviction_record = relationship(EvictionRecords, foreign_keys=eviction_record_id)
 
 
 class Issues(Base):
-    __tablename__ = 'issues'
+    __tablename__ = "issues"
     id = Column(Integer, primary_key=True)
     created_at = Column(DateTime)
     updated_at = Column(DateTime)
-    address_id = Column(Integer, ForeignKey('addresses.id'))
+    address_id = Column(Integer, ForeignKey("addresses.id"))
     address = relationship(Addresses, foreign_keys=address_id)
-    tenant_id = Column(Integer, ForeignKey('users.id'))
+    tenant_id = Column(Integer, ForeignKey("users.id"))
     tenant = relationship(
-        'User', primaryjoin="Issues.tenant_id==User.id", foreign_keys=tenant_id
+        "User", primaryjoin="Issues.tenant_id==User.id", foreign_keys=tenant_id
     )
-    landlord_id = Column(Integer, ForeignKey('users.id'))
+    landlord_id = Column(Integer, ForeignKey("users.id"))
     landlord = relationship(
-        'User', primaryjoin="Issues.landlord_id==User.id", foreign_keys=landlord_id
+        "User", primaryjoin="Issues.landlord_id==User.id", foreign_keys=landlord_id
     )
     title = Column(Text)
     message = Column(Text)
     categories = relationship(
-        'Categories', secondary=issue_category_table, backref='issues'
+        "Categories", secondary=issue_category_table, backref="issues"
     )
     closed = Column(DateTime)
     resolved = Column(DateTime)

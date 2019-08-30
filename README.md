@@ -7,7 +7,7 @@ Zappa and AWS Lambda functions.
 
 Set environment variables (database connection information in `database.py`, and `SECRET_KEY`). This will only run with an application where the database matches the schema in `models.py`, and it is intended as a read-only app.
 
-Create a virtual environment, and run `pipenv install`. Once you've installed dependencies, just run `pipenv run python runserver.py` and you should see the application running locally at `localhost:5000`.
+Create a virtual environment, and run `pipenv sync`. Once you've installed dependencies, just run `pipenv run python runserver.py` and you should see the application running locally at `localhost:5000`.
 
 ## Deploying
 
