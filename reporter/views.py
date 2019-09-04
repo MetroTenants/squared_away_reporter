@@ -80,10 +80,10 @@ def detail_csv():
 
     call_query = (
         session.query(Calls)
-        .join(Calls.address)
-        .join(tenant_alias, Calls.tenant)
-        .join(landlord_alias, Calls.landlord)
-        .join(rep_alias, Calls.rep)
+        .outerjoin(Calls.address)
+        .outerjoin(tenant_alias, Calls.tenant)
+        .outerjoin(landlord_alias, Calls.landlord)
+        .outerjoin(rep_alias, Calls.rep)
         .options(
             contains_eager(Calls.address),
             contains_eager(Calls.tenant, alias=tenant_alias),
@@ -99,9 +99,9 @@ def detail_csv():
 
     issue_query = (
         session.query(Issues)
-        .join(Issues.address)
-        .join(tenant_alias, Issues.tenant)
-        .join(landlord_alias, Issues.landlord)
+        .outerjoin(Issues.address)
+        .outerjoin(tenant_alias, Issues.tenant)
+        .outerjoin(landlord_alias, Issues.landlord)
         .options(
             contains_eager(Issues.address),
             contains_eager(Issues.tenant, alias=tenant_alias),
@@ -161,11 +161,11 @@ def eviction_record_detail_csv():
 
     record_query = (
         session.query(EvictionRecords)
-        .join(EvictionRecords.calls)
-        .join(Calls.address)
-        .join(tenant_alias, Calls.tenant)
-        .join(landlord_alias, Calls.landlord)
-        .join(rep_alias, Calls.rep)
+        .outerjoin(EvictionRecords.calls)
+        .outerjoin(Calls.address)
+        .outerjoin(tenant_alias, Calls.tenant)
+        .outerjoin(landlord_alias, Calls.landlord)
+        .outerjoin(rep_alias, Calls.rep)
         .options(
             subqueryload(EvictionRecords.calls),
             subqueryload(EvictionRecords.calls).joinedload(Calls.address),
