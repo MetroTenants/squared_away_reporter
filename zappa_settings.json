@@ -9,7 +9,7 @@
         "s3_bucket": "squared-away-reports-prod",
         "keep_warm": false,
         "domain": "reports.squaredawaychicago.com",
-        "certificate_arn": "arn:aws:acm:us-east-1:489293759233:certificate/9788726d-2f40-46d2-94a3-b0f88e3ab06a",
+        "certificate_arn": "arn:aws:acm:us-east-1:489293759233:certificate/b23cf62e-80f9-4167-9a8f-bde60bc9504a",
         "vpc_config": {
             "SubnetIds": ["subnet-0403a7e58f5edac97", "subnet-0e2d8b869e3f5d42e", "subnet-0659ba8239ea484e0"],
             "SecurityGroupIds": ["sg-0a725569b8daca27d"]
