@@ -45,7 +45,7 @@ def filter_csv():
     export = CsvExport(
         [geog_name, "ci_count", start_date_str, end_date_str, categories, geog],
         [
-            [feat["properties"][geog_name], feat["properties"]["ci_count"]]
+            [feat["properties"][geog_name], feat["properties"].get("ci_count", 0)]
             for feat in chi_areas["features"]
         ],
     )

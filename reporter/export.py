@@ -89,6 +89,9 @@ EVICTION_COLS = [
     "last_rent_details",
     "documentation",
     "additional_info",
+    "referred_to_lcbh",
+    "did_lcbh_complete_intake",
+    "did_lcbh_take_case",
 ]
 
 
@@ -129,7 +132,7 @@ class EvictionRecordRow(RecordRow):
             setattr(self, col, getattr(row, col, None))
         call = None
         if len(row.calls):
-            call = row.calls[0]
+            call = sorted(row.calls, key=lambda c: c.created_at)[-1]
         call_row = RecordRow(call, cols=CSV_COLS)
         self.cols = EVICTION_COLS + [f"call_{col}" for col in CSV_COLS]
         for col in CSV_COLS:
