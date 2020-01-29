@@ -55,6 +55,7 @@ CSV_COLS = [
     "is_tenant_interested_in_volunteering",
     "is_referred_to_agency",
     "is_walkin",
+    "eviction_record_id",
 ]
 
 USER_PREFIXES = ["tenant", "landlord", "rep"]
