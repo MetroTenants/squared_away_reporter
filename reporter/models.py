@@ -39,6 +39,7 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     first_name = Column(String)
     last_name = Column(String)
+    gender = Column(String)
     email = Column(String, nullable=False, unique=True)
     role = Column(String)
     management_company = Column(String)

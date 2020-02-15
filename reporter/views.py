@@ -84,12 +84,12 @@ def detail_csv():
         .outerjoin(tenant_alias, Calls.tenant)
         .outerjoin(landlord_alias, Calls.landlord)
         .outerjoin(rep_alias, Calls.rep)
+        .outerjoin(Calls.categories)
         .options(
             contains_eager(Calls.address),
             contains_eager(Calls.tenant, alias=tenant_alias),
             contains_eager(Calls.landlord, alias=landlord_alias),
             contains_eager(Calls.rep, alias=rep_alias),
-            subqueryload(Calls.categories),
         )
         .filter(
             Calls.created_at >= start_date, Calls.created_at <= end_date, *filter_list
@@ -102,11 +102,11 @@ def detail_csv():
         .outerjoin(Issues.address)
         .outerjoin(tenant_alias, Issues.tenant)
         .outerjoin(landlord_alias, Issues.landlord)
+        .outerjoin(Issues.categories)
         .options(
             contains_eager(Issues.address),
             contains_eager(Issues.tenant, alias=tenant_alias),
             contains_eager(Issues.landlord, alias=landlord_alias),
-            subqueryload(Issues.categories),
         )
         .filter(
             Issues.created_at >= start_date, Issues.created_at <= end_date, *filter_list
