@@ -1,169 +1,178 @@
-{% extends "base.html" %}
-{% block title %}Squared Away Reports{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Squared Away Reports{% endblock %} {%
+block content %}
 <div class="container">
-<div class='row col-md-12 col-offset-1'>
-  <h1>Squared Away Reports</h1>
-</div>
-<div class='row main-content'>
-  <div class='col-md-5 col-offset-1'>
-    <div class="form-group">
-      <div>
-        <a href="breakdown">
-          <button class="btn" type="button">Breakdown by Ward</button>
+  <div class="row col-md-12 col-offset-1">
+    <h1>Squared Away Reports</h1>
+  </div>
+  <div class="row main-content">
+    <div class="col-md-5 col-offset-1">
+      <div class="form-group">
+        <div>
+          <a href="breakdown">
+            <button class="btn" type="button">Breakdown by Ward</button>
+          </a>
+        </div>
+        <div>
+          <label for="geog">Geography</label>
+          <select class="form-control" id="geog">
+            <option value="wards">Wards</option>
+            <option value="zips">Zip Codes</option>
+          </select>
+        </div>
+        <div>
+          <label for="start_date">Start Date</label>
+          <input id="start_date" name="start_date" type="date" />
+        </div>
+        <div>
+          <label for="end_date">End Date</label>
+          <input id="end_date" name="end_date" type="date" />
+        </div>
+        <div>
+          <label for="categories">Categories</label>
+          <select multiple class="form-control" id="categories">
+            <option>Repairs</option>
+            <option>Lease</option>
+            <option>Move In</option>
+            <option>Heat and Essential Services</option>
+            <option>Security Deposit</option>
+            <option>Move Out</option>
+            <option>Eviction</option>
+            <option>Termination</option>
+            <option>Building Security</option>
+            <option>Discrimination</option>
+            <option>Harrassment/Retaliation</option>
+            <option>Unlawful Landlord Entry</option>
+            <option>Lockout</option>
+            <option>Rent Increase</option>
+            <option>Interest</option>
+            <option>Utility Theft</option>
+            <option>Mold</option>
+            <option>Lead Complaint</option>
+            <option>Foreclosure</option>
+            <option>Bed Bugs</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="zip_codes">Zip Codes</label>
+          <select multiple class="form-control" id="zip_codes">
+            <option>60601</option>
+            <option>60602</option>
+            <option>60603</option>
+            <option>60604</option>
+            <option>60605</option>
+            <option>60606</option>
+            <option>60607</option>
+            <option>60608</option>
+            <option>60609</option>
+            <option>60610</option>
+            <option>60611</option>
+            <option>60612</option>
+            <option>60613</option>
+            <option>60614</option>
+            <option>60615</option>
+            <option>60616</option>
+            <option>60617</option>
+            <option>60618</option>
+            <option>60619</option>
+            <option>60620</option>
+            <option>60621</option>
+            <option>60622</option>
+            <option>60623</option>
+            <option>60624</option>
+            <option>60625</option>
+            <option>60626</option>
+            <option>60628</option>
+            <option>60629</option>
+            <option>60630</option>
+            <option>60631</option>
+            <option>60632</option>
+            <option>60633</option>
+            <option>60634</option>
+            <option>60636</option>
+            <option>60637</option>
+            <option>60638</option>
+            <option>60639</option>
+            <option>60640</option>
+            <option>60641</option>
+            <option>60642</option>
+            <option>60643</option>
+            <option>60643</option>
+            <option>60644</option>
+            <option>60645</option>
+            <option>60646</option>
+            <option>60647</option>
+            <option>60649</option>
+            <option>60651</option>
+            <option>60652</option>
+            <option>60653</option>
+            <option>60654</option>
+            <option>60655</option>
+            <option>60656</option>
+            <option>60657</option>
+            <option>60659</option>
+            <option>60660</option>
+            <option>60661</option>
+            <option>60666</option>
+            <option>60707</option>
+            <option>60707</option>
+            <option>60827</option>
+          </select>
+        </div>
+        <div>
+          <label for="include_wards">
+            <input type="checkbox" id="include_wards" name="include_wards" />
+            Include wards in report?
+          </label>
+        </div>
+        <div>
+          <label for="report_title">Report Title</label>
+          <input
+            type="text"
+            id="report_title"
+            class="form-control"
+            placeholder="Calls and Issues"
+          />
+        </div>
+        <div>
+          <label for="color_choice">Colors</label>
+          <select class="form-control" id="color_choice">
+            <option value="YlOrBr">Yellow, Orange, Brown</option>
+            <option value="Blues">Blues</option>
+            <option value="BuPu">Blue, Purple</option>
+            <option value="Greens">Greens</option>
+            <option value="OrRd">Orange, Red</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn" type="button" id="updatevals">Update Map</button>
+      <h3>Downloads</h3>
+      <div class="btn-list">
+        <a id="csvLink" href="filter-csv">
+          <button class="btn" type="button">Download CSV by Areas</button>
+        </a>
+        <a id="detailCsvLink" href="detail-csv">
+          <button class="btn" type="button">Download Detail CSV</button>
+        </a>
+        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+        <a id="evictionRecordsCsvLink" href="eviction-record-csv">
+          <button class="btn" type="button">
+            Download Eviction Record Detail CSV for Dates
+          </button>
+        </a>
+        {% endif %}
+        <a id="printLink" href="print">
+          <button class="btn" type="button">Print Map</button>
         </a>
       </div>
-      <div>
-        <label for="geog">Geography</label>
-        <select class="form-control" id="geog">
-          <option value="wards">Wards</option>
-          <option value="zips">Zip Codes</option>
-        </select>
-      </div>
-      <div>
-        <label for="start_date">Start Date</label>
-        <input id="start_date" name="start_date" type="date">
-      </div>
-      <div>
-        <label for="end_date">End Date</label>
-        <input id="end_date" name="end_date" type="date">
-      </div>
-      <div>
-        <label for="categories">Categories</label>
-        <select multiple class="form-control" id="categories">
-          <option>Repairs</option>
-          <option>Lease</option>
-          <option>Move In</option>
-          <option>Heat and Essential Services</option>
-          <option>Security Deposit</option>
-          <option>Move Out</option>
-          <option>Eviction</option>
-          <option>Termination</option>
-          <option>Building Security</option>
-          <option>Discrimination</option>
-          <option>Harrassment/Retaliation</option>
-          <option>Unlawful Landlord Entry</option>
-          <option>Lockout</option>
-          <option>Rent Increase</option>
-          <option>Interest</option>
-          <option>Utility Theft</option>
-          <option>Mold</option>
-          <option>Lead Complaint</option>
-          <option>Foreclosure</option>
-          <option>Bed Bugs</option>
-          <option>Other</option>
-        </select>
-      </div>
-      <div>
-        <label for="zip_codes">Zip Codes</label>
-        <select multiple class="form-control" id="zip_codes">
-          <option>60601</option>
-          <option>60602</option>
-          <option>60603</option>
-          <option>60604</option>
-          <option>60605</option>
-          <option>60606</option>
-          <option>60607</option>
-          <option>60608</option>
-          <option>60609</option>
-          <option>60610</option>
-          <option>60611</option>
-          <option>60612</option>
-          <option>60613</option>
-          <option>60614</option>
-          <option>60615</option>
-          <option>60616</option>
-          <option>60617</option>
-          <option>60618</option>
-          <option>60619</option>
-          <option>60620</option>
-          <option>60621</option>
-          <option>60622</option>
-          <option>60623</option>
-          <option>60624</option>
-          <option>60625</option>
-          <option>60626</option>
-          <option>60628</option>
-          <option>60629</option>
-          <option>60630</option>
-          <option>60631</option>
-          <option>60632</option>
-          <option>60633</option>
-          <option>60634</option>
-          <option>60636</option>
-          <option>60637</option>
-          <option>60638</option>
-          <option>60639</option>
-          <option>60640</option>
-          <option>60641</option>
-          <option>60642</option>
-          <option>60643</option>
-          <option>60643</option>
-          <option>60644</option>
-          <option>60645</option>
-          <option>60646</option>
-          <option>60647</option>
-          <option>60649</option>
-          <option>60651</option>
-          <option>60652</option>
-          <option>60653</option>
-          <option>60654</option>
-          <option>60655</option>
-          <option>60656</option>
-          <option>60657</option>
-          <option>60659</option>
-          <option>60660</option>
-          <option>60661</option>
-          <option>60666</option>
-          <option>60707</option>
-          <option>60707</option>
-          <option>60827</option>
-        </select>
-      </div>
-      <div>
-        <label for="report_title">Report Title</label>
-        <input type="text" id="report_title" class="form-control" placeholder="Calls and Issues" />
-      </div>
-      <div>
-        <label for="color_choice">Colors</label>
-        <select class="form-control" id="color_choice">
-          <option value="YlOrBr">Yellow, Orange, Brown</option>
-          <option value="Blues">Blues</option>
-          <option value="BuPu">Blue, Purple</option>
-          <option value="Greens">Greens</option>
-          <option value="OrRd">Orange, Red</option>
-        </select>
-      </div>
     </div>
-    <button class="btn" type="button" id="updatevals">Update Map</button>
-    <h3>Downloads</h3>
-    <div class="btn-list">
-      <a id="csvLink" href="filter-csv">
-        <button class="btn" type="button">Download CSV by Areas</button>
-      </a>
-      <a id="detailCsvLink" href="detail-csv">
-        <button class="btn" type="button">Download Detail CSV</button>
-      </a>
-      {% if current_user.is_authenticated and current_user.role == 'admin' %}
-      <a id="evictionRecordsCsvLink" href="eviction-record-csv">
-        <button class="btn" type="button">Download Eviction Record Detail CSV for Dates</button>
-      </a>
-      {% endif %}
-      <a id="printLink" href="print">
-        <button class="btn" type="button">Print Map</button>
-      </a>
+    <div class="col-md-7 col-offset-1" id="map-panel">
+      <div class="loader" style="display: none;"></div>
+      <svg width="100%" height="750px"></svg>
     </div>
   </div>
-  <div class='col-md-7 col-offset-1' id="map-panel">
-    <div class="loader" style="display: none;"></div>
-    <svg width="100%" height="750px"></svg>
-  </div>
-</div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 {% endblock %}

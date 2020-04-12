@@ -67,6 +67,7 @@ def detail_csv():
         request.args.get("start_date"), request.args.get("end_date")
     )
     in_chicago = request.args.get("outside_chicago") is None
+    include_wards = request.args.get("include_wards") is not None
 
     filter_list = []
     if categories:
@@ -84,8 +85,8 @@ def detail_csv():
         .outerjoin(tenant_alias, Calls.tenant)
         .outerjoin(landlord_alias, Calls.landlord)
         .outerjoin(rep_alias, Calls.rep)
-        .outerjoin(Calls.categories)
         .options(
+            subqueryload(Calls.categories),
             contains_eager(Calls.address),
             contains_eager(Calls.tenant, alias=tenant_alias),
             contains_eager(Calls.landlord, alias=landlord_alias),
@@ -102,8 +103,8 @@ def detail_csv():
         .outerjoin(Issues.address)
         .outerjoin(tenant_alias, Issues.tenant)
         .outerjoin(landlord_alias, Issues.landlord)
-        .outerjoin(Issues.categories)
         .options(
+            subqueryload(Issues.categories),
             contains_eager(Issues.address),
             contains_eager(Issues.tenant, alias=tenant_alias),
             contains_eager(Issues.landlord, alias=landlord_alias),
@@ -118,7 +119,7 @@ def detail_csv():
     issues = [RecordRow(i) for i in issue_query]
     calls_issues = calls + issues
 
-    if in_chicago:
+    if in_chicago and include_wards:
         chi_wards, tree = load_rtree("wards")
 
         for record in calls_issues:
