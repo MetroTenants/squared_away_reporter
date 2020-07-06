@@ -69,11 +69,20 @@ def detail_csv():
     in_chicago = request.args.get("outside_chicago") is None
     include_wards = request.args.get("include_wards") is not None
 
-    filter_list = []
+    call_filter_list = []
+    issue_filter_list = []
     if categories:
-        filter_list.append(Categories.name.in_(categories.split(",")))
+        category_list = categories.split(",")
+        call_filter_list.append(
+            Calls.categories.any(Categories.name.in_(category_list))
+        )
+        issue_filter_list.append(
+            Issues.categories.any(Categories.name.in_(category_list))
+        )
     if zip_codes:
-        filter_list.append(Addresses.zip.in_(zip_codes.split(",")))
+        zip_list = zip_codes.split(",")
+        call_filter_list.append(Addresses.zip.in_(zip_list))
+        issue_filter_list.append(Addresses.zip.in_(zip_list))
 
     tenant_alias = aliased(User)
     landlord_alias = aliased(User)
@@ -93,7 +102,9 @@ def detail_csv():
             contains_eager(Calls.rep, alias=rep_alias),
         )
         .filter(
-            Calls.created_at >= start_date, Calls.created_at <= end_date, *filter_list
+            Calls.created_at >= start_date,
+            Calls.created_at <= end_date,
+            *call_filter_list,
         )
         .order_by(Calls.created_at.asc())
     )
@@ -110,7 +121,9 @@ def detail_csv():
             contains_eager(Issues.landlord, alias=landlord_alias),
         )
         .filter(
-            Issues.created_at >= start_date, Issues.created_at <= end_date, *filter_list
+            Issues.created_at >= start_date,
+            Issues.created_at <= end_date,
+            *issue_filter_list,
         )
         .order_by(Issues.created_at.asc())
     )
