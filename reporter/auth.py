@@ -7,7 +7,7 @@ from flask_login import LoginManager, current_user, login_user, logout_user
 from flask_wtf import Form
 from sqlalchemy import func
 from wtforms import PasswordField, TextField
-from wtforms.validators import DataRequired, Email
+from wtforms.validators import DataRequired
 
 from .database import db_session
 from .models import User
@@ -18,7 +18,7 @@ login_manager = LoginManager()
 
 
 class LoginForm(Form):
-    email = TextField("email", validators=[DataRequired(), Email()])
+    email = TextField("email", validators=[DataRequired()])
     password = PasswordField("password", validators=[DataRequired()])
 
     def __init__(self, *args, **kwargs):
